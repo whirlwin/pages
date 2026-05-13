@@ -43,18 +43,25 @@
     <main>
       <!-- HERO -->
       <section class="hero" aria-labelledby="hero-heading">
-        <h1 id="hero-heading" class="wordmark">whirlwin<span class="wordmark__tld">.io</span></h1>
+        <div class="hero__text">
+          <h1 id="hero-heading" class="wordmark">whirlwin<span class="wordmark__tld">.io</span></h1>
 
-        <div class="hero__prompt">
-          <span class="prompt">$</span>
-          <span class="hero__cmd" id="typed"></span><span class="caret" aria-hidden="true">█</span>
+          <div class="hero__prompt">
+            <span class="prompt">$</span>
+            <span class="hero__cmd" id="typed"></span><span class="caret" aria-hidden="true">█</span>
+          </div>
+
+          <p class="hero__headline">
+            <span class="hero__headline-spark" aria-hidden="true">✨</span>
+            AI and Platform Engineering at
+            <a href="https://catalystone.com" rel="noopener">CatalystOne</a>
+          </p>
         </div>
 
-        <p class="hero__headline">
-          <span class="hero__headline-spark" aria-hidden="true">✨</span>
-          AI and Platform Engineering at
-          <a href="https://catalystone.com" rel="noopener">CatalystOne</a>
-        </p>
+        <div class="hero__game" aria-hidden="true">
+          <canvas id="stacker" width="420" height="360" aria-label="A small physics toy. Drag the boxes onto the swaying platform."></canvas>
+          <p class="hero__game-hint">drag the boxes onto the platform · <kbd>r</kbd> resets</p>
+        </div>
       </section>
 
       <!-- APPS -->
@@ -208,5 +215,7 @@
     </footer>
 
     <script src="./script.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/matter-js@0.20.0/build/matter.min.js" defer></script>
+    <script src="./game.js" defer></script>
   </body>
 </html>
