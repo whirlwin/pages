@@ -199,28 +199,29 @@ main {
   padding-top: 1rem;
 }
 .wordmark {
-  margin: 0 0 1.25rem;
-  font-family: var(--mono);
-  font-weight: 700;
-  font-size: clamp(3.2rem, 13vw, 9rem);
-  line-height: 0.9;
-  letter-spacing: -0.04em;
-  color: var(--phosphor);
+  margin: 0 0 1.5rem;
+  font-family: "Major Mono Display", var(--mono);
+  font-weight: 400;
+  font-size: clamp(2.6rem, 9.5vw, 6rem);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  color: var(--phosphor-2);
   text-shadow:
-    0 0 10px rgba(130, 244, 163, 0.35),
-    0 0 32px rgba(130, 244, 163, 0.15);
+    0 0 8px rgba(58, 208, 122, 0.28),
+    0 0 22px rgba(58, 208, 122, 0.10);
   display: inline-flex;
   align-items: baseline;
-  gap: 0.04em;
+  gap: 0.08em;
   word-break: break-word;
 }
 .wordmark__tld {
-  font-size: 0.34em;
-  font-weight: 500;
+  font-size: 0.42em;
+  font-weight: 400;
   letter-spacing: 0;
   color: var(--amber);
-  text-shadow: 0 0 8px rgba(255, 180, 84, 0.25);
-  transform: translateY(-0.55em);
+  opacity: 0.85;
+  text-shadow: 0 0 6px rgba(255, 180, 84, 0.18);
+  transform: translateY(-0.4em);
 }
 
 .hero__prompt {
@@ -456,6 +457,55 @@ main {
   text-align: right;
 }
 .links a:hover .links__v { color: var(--phosphor); }
+
+/* Icon-button variant: side-by-side cards with logos */
+.links--icons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  font-size: 0.95rem;
+}
+.links--icons li {
+  border-bottom: none;
+  flex: 1 1 240px;
+}
+.links--icons a {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0 0.85rem;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, var(--bg-2), var(--bg));
+  color: var(--ink);
+  transition: border-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+}
+.links--icons a:hover {
+  background: linear-gradient(180deg, var(--bg-2), var(--bg));
+  border-color: var(--phosphor-2);
+  color: var(--ink);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px -10px rgba(130, 244, 163, 0.22);
+}
+.links--icons .links__logo {
+  width: 28px;
+  height: 28px;
+  color: var(--phosphor);
+  flex-shrink: 0;
+}
+.links--icons a:hover .links__logo { color: var(--phosphor); }
+.links--icons .links__k {
+  color: var(--ink);
+  font-weight: 500;
+}
+.links--icons .links__k::before { content: ""; }
+.links--icons .links__v {
+  color: var(--ink-dim);
+  text-align: right;
+  font-size: 0.88rem;
+}
+.links--icons a:hover .links__v { color: var(--phosphor); }
 
 /* ── Footer ───────────────────────────────────────────────────────── */
 
