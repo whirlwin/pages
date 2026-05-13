@@ -361,6 +361,8 @@ main {
   display: block;
   width: 72px;
   height: 72px;
+  object-fit: cover;
+  object-position: center 22%;
 }
 @media (max-width: 480px) {
   .card__logo img { width: 56px; height: 56px; }
