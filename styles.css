@@ -199,29 +199,26 @@ main {
   padding-top: 1rem;
 }
 .wordmark {
-  margin: 0 0 1.5rem;
-  font-family: "Major Mono Display", var(--mono);
+  margin: 0 0 1rem;
+  font-family: "VT323", var(--mono);
   font-weight: 400;
-  font-size: clamp(2.6rem, 9.5vw, 6rem);
-  line-height: 0.95;
-  letter-spacing: -0.02em;
+  font-size: clamp(4rem, 13vw, 8rem);
+  line-height: 0.9;
+  letter-spacing: 0;
   color: var(--phosphor-2);
   text-shadow:
-    0 0 8px rgba(58, 208, 122, 0.28),
-    0 0 22px rgba(58, 208, 122, 0.10);
+    0 0 10px rgba(58, 208, 122, 0.32),
+    0 0 24px rgba(58, 208, 122, 0.12);
   display: inline-flex;
   align-items: baseline;
-  gap: 0.08em;
+  gap: 0;
   word-break: break-word;
 }
 .wordmark__tld {
-  font-size: 0.42em;
-  font-weight: 400;
-  letter-spacing: 0;
+  font-size: 0.7em;
   color: var(--amber);
   opacity: 0.85;
   text-shadow: 0 0 6px rgba(255, 180, 84, 0.18);
-  transform: translateY(-0.4em);
 }
 
 .hero__prompt {
@@ -366,6 +363,35 @@ main {
 .card__title { margin-left: 0.5rem; }
 
 .card__body { padding: 1rem 1.1rem 1.15rem; }
+.card__body--with-logo {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+.card__logo {
+  display: block;
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  overflow: hidden;
+  line-height: 0;
+  background: #0f0f0f;
+  flex-shrink: 0;
+  transition: border-color 160ms ease, transform 160ms ease;
+}
+.card__logo:hover {
+  border-color: var(--phosphor-2);
+  background: #0f0f0f;
+  transform: scale(1.03);
+}
+.card__logo img {
+  display: block;
+  width: 72px;
+  height: 72px;
+}
+@media (max-width: 480px) {
+  .card__logo img { width: 56px; height: 56px; }
+}
 .card__name {
   font-size: 1.15rem; margin: 0 0 0.4rem;
   font-weight: 500;
