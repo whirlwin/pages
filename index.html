@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&family=VT323&display=swap"
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&display=swap"
       rel="stylesheet"
     />
 
@@ -30,7 +30,6 @@
         <span class="statusbar__path">oyvind@whirlwin:~</span>
       </div>
       <nav class="statusbar__nav" aria-label="primary">
-        <a href="#whoami">whoami</a>
         <a href="#apps">apps</a>
         <a href="#stack">stack</a>
         <a href="#elsewhere">elsewhere</a>
@@ -45,16 +44,7 @@
     <main>
       <!-- HERO -->
       <section class="hero" aria-labelledby="hero-heading">
-        <pre class="hero__ascii" aria-hidden="true">
- __        ___     _      _              _
- \ \      / / |__ (_)_ __| |_      _____(_)_ __
-  \ \ /\ / /| '_ \| | '__| \ \ /\ / / _ \ | '_ \
-   \ V  V / | | | | | |  | |\ V  V /  __/ | | | |
-    \_/\_/  |_| |_|_|_|  |_| \_/\_/ \___|_|_| |_|
-                                              .io
-        </pre>
-
-        <h1 id="hero-heading" class="visually-hidden">whirlwin.io</h1>
+        <h1 id="hero-heading" class="wordmark">whirlwin<span class="wordmark__tld">.io</span></h1>
 
         <div class="hero__prompt">
           <span class="prompt">$</span>
@@ -73,40 +63,12 @@
         </div>
       </section>
 
-      <!-- WHOAMI -->
-      <section id="whoami" class="block" aria-labelledby="whoami-heading">
-        <header class="block__head">
-          <span class="prompt">$</span>
-          <h2 id="whoami-heading"><span class="cmd">cat</span> <span class="arg">./whoami.md</span></h2>
-        </header>
-
-        <article class="block__body block__body--prose">
-          <p>
-            I'm <strong>Øyvind Ødegård</strong>. By day I wrangle Kubernetes, Crossplane, and
-            Backstage at CatalystOne. By night I tinker with home automation, retro hardware,
-            and silly little CLIs that no one asked for.
-          </p>
-          <p>
-            This page is intentionally <em>plain HTML</em>. No build step. No tracker. Just
-            text, a couple of fonts, and one CSS file. If you view source, you'll find the
-            whole thing.
-          </p>
-          <ul class="facts">
-            <li><span class="facts__k">based</span><span class="facts__v">Oslo, Norway</span></li>
-            <li><span class="facts__k">role</span><span class="facts__v">platform / DevEx engineer</span></li>
-            <li><span class="facts__k">editor</span><span class="facts__v">neovim, mostly</span></li>
-            <li><span class="facts__k">shell</span><span class="facts__v">zsh + tmux</span></li>
-            <li><span class="facts__k">brew</span><span class="facts__v">v60, dark roast</span></li>
-          </ul>
-        </article>
-      </section>
-
       <!-- APPS -->
       <section id="apps" class="block" aria-labelledby="apps-heading">
         <header class="block__head">
           <span class="prompt">$</span>
           <h2 id="apps-heading"><span class="cmd">ls</span> <span class="arg">-la ./apps</span></h2>
-          <span class="block__meta">5 items · sorted by mtime</span>
+          <span class="block__meta">1 item</span>
         </header>
 
         <ol class="apps">
@@ -117,95 +79,20 @@
             </div>
             <div class="card__body">
               <h3 class="card__name">
-                <a href="#">tmux-coffee</a>
+                <a href="https://nerfify.whirlwin.io/" rel="noopener">nerfify</a>
               </h3>
               <p class="card__desc">
-                A tmux statusline plugin that nags you to drink water and log your espresso
-                shots. Written in pure POSIX shell because I hate myself.
+                Just the music. A web app that strips everything but the audio from your
+                favourite distractions. Live at
+                <a href="https://nerfify.whirlwin.io/" rel="noopener">nerfify.whirlwin.io</a>.
               </p>
               <dl class="card__meta">
-                <div><dt>lang</dt><dd>shell</dd></div>
-                <div><dt>license</dt><dd>MIT</dd></div>
-                <div><dt>status</dt><dd class="ok">stable</dd></div>
+                <div><dt>host</dt><dd>nerfify.whirlwin.io</dd></div>
+                <div><dt>status</dt><dd class="ok">live</dd></div>
               </dl>
               <div class="card__tags">
-                <span>#cli</span><span>#tmux</span><span>#caffeine</span>
+                <span>#web</span><span>#audio</span>
               </div>
-            </div>
-          </li>
-
-          <li class="card">
-            <div class="card__chrome">
-              <span class="card__dot"></span><span class="card__dot"></span><span class="card__dot"></span>
-              <span class="card__title">apps/02</span>
-            </div>
-            <div class="card__body">
-              <h3 class="card__name"><a href="#">glyph-grep</a></h3>
-              <p class="card__desc">
-                grep, but it draws ASCII heatmaps of your matches across files. Useful for
-                spotting hot spots in giant repos at a glance.
-              </p>
-              <dl class="card__meta">
-                <div><dt>lang</dt><dd>rust</dd></div>
-                <div><dt>status</dt><dd class="warn">beta</dd></div>
-              </dl>
-              <div class="card__tags"><span>#cli</span><span>#dx</span></div>
-            </div>
-          </li>
-
-          <li class="card">
-            <div class="card__chrome">
-              <span class="card__dot"></span><span class="card__dot"></span><span class="card__dot"></span>
-              <span class="card__title">apps/03</span>
-            </div>
-            <div class="card__body">
-              <h3 class="card__name"><a href="#">kube-tea</a></h3>
-              <p class="card__desc">
-                A tiny TUI that surfaces only the Kubernetes events your future self will
-                actually care about. Built on bubbletea.
-              </p>
-              <dl class="card__meta">
-                <div><dt>lang</dt><dd>go</dd></div>
-                <div><dt>status</dt><dd class="ok">stable</dd></div>
-              </dl>
-              <div class="card__tags"><span>#k8s</span><span>#tui</span></div>
-            </div>
-          </li>
-
-          <li class="card">
-            <div class="card__chrome">
-              <span class="card__dot"></span><span class="card__dot"></span><span class="card__dot"></span>
-              <span class="card__title">apps/04</span>
-            </div>
-            <div class="card__body">
-              <h3 class="card__name"><a href="#">runebook</a></h3>
-              <p class="card__desc">
-                Personal runbook engine. Markdown in, executable checklists out, with
-                Slack receipts when steps complete.
-              </p>
-              <dl class="card__meta">
-                <div><dt>lang</dt><dd>typescript</dd></div>
-                <div><dt>status</dt><dd class="warn">alpha</dd></div>
-              </dl>
-              <div class="card__tags"><span>#sre</span><span>#markdown</span></div>
-            </div>
-          </li>
-
-          <li class="card card--ghost">
-            <div class="card__chrome">
-              <span class="card__dot"></span><span class="card__dot"></span><span class="card__dot"></span>
-              <span class="card__title">apps/05 — WIP</span>
-            </div>
-            <div class="card__body">
-              <h3 class="card__name"><a href="#">// new app loading…</a></h3>
-              <p class="card__desc">
-                <span class="blink">▌</span> reserved slot. Something with ESP32s and
-                e-paper. Probably.
-              </p>
-              <dl class="card__meta">
-                <div><dt>status</dt><dd class="dim">draft</dd></div>
-              </dl>
-              <div class="card__tags"><span>#hardware</span><span>#wip</span></div>
             </div>
           </li>
         </ol>
@@ -233,15 +120,12 @@ HOBBIES    ham radio · home automation · keebs · cycling</pre>
       <section id="elsewhere" class="block" aria-labelledby="elsewhere-heading">
         <header class="block__head">
           <span class="prompt">$</span>
-          <h2 id="elsewhere-heading"><span class="cmd">finger</span> <span class="arg">oyvind@*</span></h2>
+          <h2 id="elsewhere-heading"><span class="cmd">whois</span> <span class="arg">whirlwin</span></h2>
         </header>
 
         <ul class="links">
           <li><a href="https://codeberg.org/whirlwin" rel="me noopener"><span class="links__k">codeberg</span><span class="links__v">@whirlwin</span></a></li>
           <li><a href="https://github.com/whirlwin" rel="me noopener"><span class="links__k">github</span><span class="links__v">@whirlwin</span></a></li>
-          <li><a href="mailto:hi@whirlwin.io"><span class="links__k">email</span><span class="links__v">hi@whirlwin.io</span></a></li>
-          <li><a href="https://mastodon.social/@whirlwin" rel="me noopener"><span class="links__k">mastodon</span><span class="links__v">@whirlwin@mastodon.social</span></a></li>
-          <li><a href="/keys.txt"><span class="links__k">pgp</span><span class="links__v">/keys.txt</span></a></li>
         </ul>
       </section>
     </main>

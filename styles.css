@@ -15,7 +15,6 @@
   --rule-hot:  #2a4434;
 
   --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  --display: "VT323", var(--mono);
 
   --maxw: 78ch;
   --pad:  clamp(1rem, 4vw, 2.5rem);
@@ -199,20 +198,30 @@ main {
   position: relative;
   padding-top: 1rem;
 }
-.hero__ascii {
-  margin: 0 0 1.5rem;
+.wordmark {
+  margin: 0 0 1.25rem;
   font-family: var(--mono);
-  font-size: clamp(0.55rem, 1.4vw, 0.92rem);
-  line-height: 1.05;
+  font-weight: 700;
+  font-size: clamp(3.2rem, 13vw, 9rem);
+  line-height: 0.9;
+  letter-spacing: -0.04em;
   color: var(--phosphor);
   text-shadow:
-    0 0 6px rgba(130, 244, 163, 0.45),
-    0 0 22px rgba(130, 244, 163, 0.18);
-  white-space: pre;
-  overflow-x: auto;
-  scrollbar-width: none;
+    0 0 10px rgba(130, 244, 163, 0.35),
+    0 0 32px rgba(130, 244, 163, 0.15);
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.04em;
+  word-break: break-word;
 }
-.hero__ascii::-webkit-scrollbar { display: none; }
+.wordmark__tld {
+  font-size: 0.34em;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--amber);
+  text-shadow: 0 0 8px rgba(255, 180, 84, 0.25);
+  transform: translateY(-0.55em);
+}
 
 .hero__prompt {
   display: flex; align-items: baseline; gap: 0.6rem;
@@ -471,15 +480,15 @@ main {
 /* ── Hero entry animation ─────────────────────────────────────────── */
 
 @media (prefers-reduced-motion: no-preference) {
-  .hero__ascii, .hero__prompt, .hero__lede, .hero__cta {
+  .wordmark, .hero__prompt, .hero__lede, .hero__cta {
     opacity: 0;
     transform: translateY(8px);
     animation: rise 0.6s ease forwards;
   }
-  .hero__ascii  { animation-delay: 0.05s; }
+  .wordmark     { animation-delay: 0.05s; }
   .hero__prompt { animation-delay: 0.30s; }
-  .hero__lede   { animation-delay: 0.85s; }
-  .hero__cta    { animation-delay: 1.05s; }
+  .hero__lede   { animation-delay: 0.55s; }
+  .hero__cta    { animation-delay: 0.75s; }
 }
 @keyframes rise {
   to { opacity: 1; transform: none; }
