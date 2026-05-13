@@ -239,54 +239,27 @@ main {
   50% { opacity: 0; }
 }
 
-.hero__lede {
+.hero__headline {
   max-width: 62ch;
+  margin: 0;
+  font-size: clamp(1.1rem, 2vw, 1.4rem);
+  line-height: 1.4;
   color: var(--ink);
-  font-size: 1.0625rem;
-  margin: 0 0 1.75rem;
+  letter-spacing: 0.005em;
 }
-.hero__lede code {
-  background: var(--bg-3);
-  border: 1px solid var(--rule);
-  border-radius: var(--radius);
-  padding: 0 0.3rem;
-  color: var(--amber);
-  font-size: 0.92em;
-}
-
-.hero__cta { display: flex; flex-wrap: wrap; gap: 0.75rem; }
-
-.key {
-  display: inline-flex; align-items: center; gap: 0.6rem;
-  padding: 0.5rem 0.9rem;
-  border: 1px solid var(--phosphor-2);
-  background: rgba(130, 244, 163, 0.06);
+.hero__headline a {
   color: var(--phosphor);
-  border-radius: var(--radius);
-  font-size: 0.9rem;
-  letter-spacing: 0.02em;
-  transition: transform 120ms ease, background 120ms ease;
+  border-bottom: 1px dotted var(--phosphor-2);
+  white-space: nowrap;
 }
-.key:hover {
-  background: var(--phosphor); color: var(--bg);
-  transform: translateY(-1px);
+.hero__headline a:hover {
+  color: var(--bg);
+  background: var(--phosphor);
+  border-bottom-color: var(--phosphor);
 }
-.key kbd {
-  background: var(--bg);
-  border: 1px solid currentColor;
-  border-bottom-width: 2px;
-  border-radius: 3px;
-  padding: 0 0.4rem;
-  font-size: 0.85em;
-  color: inherit;
-}
-.key--ghost {
-  background: transparent;
-  border-color: var(--rule-hot);
-  color: var(--ink-dim);
-}
-.key--ghost:hover {
-  background: var(--bg-3); color: var(--ink); border-color: var(--ink-dim);
+.hero__headline-spark {
+  margin-right: 0.35em;
+  filter: drop-shadow(0 0 8px rgba(255, 220, 130, 0.45));
 }
 
 /* ── whoami facts ─────────────────────────────────────────────────── */
@@ -556,15 +529,14 @@ main {
 /* ── Hero entry animation ─────────────────────────────────────────── */
 
 @media (prefers-reduced-motion: no-preference) {
-  .wordmark, .hero__prompt, .hero__lede, .hero__cta {
+  .wordmark, .hero__prompt, .hero__headline {
     opacity: 0;
     transform: translateY(8px);
     animation: rise 0.6s ease forwards;
   }
-  .wordmark     { animation-delay: 0.05s; }
-  .hero__prompt { animation-delay: 0.30s; }
-  .hero__lede   { animation-delay: 0.55s; }
-  .hero__cta    { animation-delay: 0.75s; }
+  .wordmark       { animation-delay: 0.05s; }
+  .hero__prompt   { animation-delay: 0.30s; }
+  .hero__headline { animation-delay: 0.55s; }
 }
 @keyframes rise {
   to { opacity: 1; transform: none; }
