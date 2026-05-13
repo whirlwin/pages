@@ -1,5 +1,5 @@
-// Tiny physics toy: pull the boxes off the right-side wall shelves
-// and stack them on the swaying platform. No score, no win state.
+// Tiny physics toy: a tower of boxes pre-stacked on a swaying platform.
+// Drag them around. No score, no win state — just a fiddle activity.
 (() => {
   const canvas = document.getElementById("stacker");
   if (!canvas || typeof Matter === "undefined") return;
@@ -19,85 +19,87 @@
   }
   fit();
 
-  const engine = Engine.create({ gravity: { x: 0, y: 1, scale: 0.0009 } });
+  const engine = Engine.create({ gravity: { x: 0, y: 1, scale: 0.0012 } });
   const world = engine.world;
 
-  // Side walls keep boxes in play horizontally.
+  // Side walls keep boxes in play; a floor catches anything that punches
+  // through the water at speed before buoyancy can lift it.
   const wallT = 80;
-  const leftWall  = Bodies.rectangle(-wallT / 2,    H / 2, wallT, H * 4, { isStatic: true });
-  const rightWall = Bodies.rectangle(W + wallT / 2, H / 2, wallT, H * 4, { isStatic: true });
-  Composite.add(world, [leftWall, rightWall]);
+  const leftWall   = Bodies.rectangle(-wallT / 2,    H / 2, wallT, H * 4, { isStatic: true });
+  const rightWall  = Bodies.rectangle(W + wallT / 2, H / 2, wallT, H * 4, { isStatic: true });
+  const bottomWall = Bodies.rectangle(W / 2, H + wallT / 2 - 2, W * 4, wallT, {
+    isStatic: true,
+    friction: 0.05,
+  });
+  Composite.add(world, [leftWall, rightWall, bottomWall]);
 
-  // Platform — kinematic, sways gently. Sits on the left side now.
-  const platformW = Math.min(180, Math.max(140, W * 0.45));
+  // Platform — kinematic. Slow gentle sway and a tiny tilt; the boxes
+  // are slippery enough to slide off without big shake.
+  const platformW = Math.min(220, Math.max(160, W * 0.55));
   const platformH = 14;
-  const platformY = H - 56;
-  const platformBaseX = Math.max(110, W * 0.30);
-  const swayAmp = 18;
+  const platformY = H - 80;
+  const platformBaseX = W / 2;
+  const swayAmp = 9;
+  const tiltAmp = 0.045;
   const platform = Bodies.rectangle(platformBaseX, platformY, platformW, platformH, {
     isStatic: true,
-    friction: 0.95,
-    frictionStatic: 1.2,
+    friction: 0.22,
+    frictionStatic: 0.3,
   });
   Composite.add(world, platform);
+
+  // Water surface — anything below this gets wet.
+  const waterY = H - 32;
 
   // Pillar under the platform (decorative).
   const pillarW = 26;
   const pillarH = H - platformY - platformH / 2;
 
-  // ── Shelves on the right wall ─────────────────────────────────────
+  // ── Boxes (stacked on the platform, Cloud Native at the bottom) ──
   const items = [
-    { label: "Cloud Native", icon: "☁",  color: "#5b9dff" },
+    { label: "Cloud Native", icon: "☁",  color: "#5b9dff" }, // bottom
     { label: "Agentic AI",   icon: "✦",  color: "#b48cff" },
     { label: "Compliance",   icon: "✓",  color: "#82f4a3" },
     { label: "FinOps",       icon: "$",  color: "#ffb454" },
     { label: "Sovereignty",  icon: "⬡",  color: "#ff7a92" },
-    { label: "Management",   icon: "▤",  color: "#7ee0d1" },
+    { label: "Management",   icon: "▤",  color: "#7ee0d1" }, // top
   ];
 
-  const boxW = Math.min(120, Math.max(100, (W - platformBaseX - platformW / 2) * 0.9));
-  const boxH = 22;
-  const shelfH = 4;
-  const shelfW = boxW + 16;
-  const shelfRightEdge = W - 6;
-  const shelfCenterX = shelfRightEdge - shelfW / 2;
-  const topPad = 24;
-  const bottomLimit = H - 30;
-  const rowGap = Math.min(48, Math.max(40, (bottomLimit - topPad) / items.length));
+  const boxW = Math.min(140, Math.max(110, platformW * 0.75));
+  const boxH = 24;
 
-  const shelves = items.map((_, i) => {
-    const y = topPad + i * rowGap;
-    return Bodies.rectangle(shelfCenterX, y, shelfW, shelfH, {
-      isStatic: true,
-      friction: 0.9,
-      frictionStatic: 1.2,
-    });
-  });
-  Composite.add(world, shelves);
-
-  function shelfRestY(i) {
-    return topPad + i * rowGap - shelfH / 2 - boxH / 2;
+  // Stack rest positions (centered above the platform, base = platform top).
+  function stackedRest(i) {
+    const platformTop = platformY - platformH / 2;
+    return {
+      x: platformBaseX,
+      y: platformTop - boxH / 2 - i * boxH,
+    };
   }
 
   function makeBox(item, i) {
-    const body = Bodies.rectangle(shelfCenterX, shelfRestY(i), boxW, boxH, {
-      restitution: 0.08,
-      friction: 0.88,
-      frictionAir: 0.014,
-      density: 0.005,
+    const rest = stackedRest(i);
+    const body = Bodies.rectangle(rest.x, rest.y, boxW, boxH, {
+      restitution: 0.15,
+      friction: 0.22,
+      frictionStatic: 0.28,
+      frictionAir: 0.006,
+      density: 0.0038,
       chamfer: { radius: 4 },
     });
     body.gameData = { ...item, w: boxW, h: boxH };
-    body.spawnSlot = i;
+    body.spawnIndex = i;
+    Body.setVelocity(body, { x: 0, y: 0 });
     return body;
   }
 
   const boxes = items.map(makeBox);
   Composite.add(world, boxes);
 
-  // Mouse / touch drag.
+  // Mouse / touch drag. Canvas backing store is W*dpr×H*dpr but the physics
+  // world is W×H, so down-scale Matter's mouse mapping by 1/dpr.
   const mouse = Mouse.create(canvas);
-  mouse.pixelRatio = 1;
+  Mouse.setScale(mouse, { x: 1 / dpr, y: 1 / dpr });
   const mc = MouseConstraint.create(engine, {
     mouse,
     constraint: { stiffness: 0.2, damping: 0.12, render: { visible: false } },
@@ -111,33 +113,46 @@
     { passive: false }
   );
 
-  // Sway the platform.
+  // Slow, gentle platform motion. Boxes are slippery enough that even
+  // this tiny tilt walks them off the edges.
   Events.on(engine, "beforeUpdate", () => {
     const t = engine.timing.timestamp / 1000;
-    const x = platformBaseX + Math.sin(t * 0.55) * swayAmp;
-    Body.setPosition(platform, { x, y: platformY });
+    Body.setPosition(platform, {
+      x: platformBaseX + Math.sin(t * 0.35) * swayAmp,
+      y: platformY,
+    });
+    Body.setAngle(platform, Math.sin(t * 0.28) * tiltAmp);
   });
 
-  // Anything that falls off — return it to its shelf.
+  // Water physics — boxes that hit water float and drift, never respawn.
+  const gMag = engine.gravity.y * engine.gravity.scale;
   Events.on(engine, "afterUpdate", () => {
+    const t = engine.timing.timestamp / 1000;
     boxes.forEach((b) => {
-      const off =
-        b.position.y > H + 80 ||
-        b.position.x < -80 ||
-        b.position.x > W + 80;
-      if (off) {
-        Body.setPosition(b, { x: shelfCenterX, y: shelfRestY(b.spawnSlot) });
-        Body.setVelocity(b, { x: 0, y: 0 });
-        Body.setAngularVelocity(b, 0);
-        Body.setAngle(b, 0);
+      const surface = waterY;
+      const depth = b.position.y + boxH / 2 - surface; // how much is below surface
+      if (depth > 0) {
+        const submerged = Math.min(1, depth / boxH);
+        // Buoyancy slightly over-corrects gravity so the box bobs up.
+        const fy = -gMag * b.mass * (1 + submerged * 0.4);
+        Body.applyForce(b, b.position, { x: 0, y: fy });
+        // Drag (water is much more viscous than air).
+        Body.setVelocity(b, {
+          x: b.velocity.x * 0.93,
+          y: b.velocity.y * 0.88,
+        });
+        Body.setAngularVelocity(b, b.angularVelocity * 0.86);
+        // Gentle current that varies per box so they drift apart.
+        const drift = 0.0000018 * Math.sin(t * 0.35 + b.spawnIndex * 1.2);
+        Body.applyForce(b, b.position, { x: drift * b.mass, y: 0 });
       }
     });
   });
 
-  // Press "r" to reset everything back onto the shelves.
+  // Press "r" to reset everything back into the stack.
   function reset() {
     boxes.forEach((b, i) => {
-      Body.setPosition(b, { x: shelfCenterX, y: shelfRestY(i) });
+      Body.setPosition(b, stackedRest(i));
       Body.setVelocity(b, { x: 0, y: 0 });
       Body.setAngularVelocity(b, 0);
       Body.setAngle(b, 0);
@@ -158,50 +173,6 @@
     ctx.closePath();
   }
 
-  function drawShelfMount() {
-    // Vertical "wall" the shelves are bolted to.
-    const x = shelfRightEdge;
-    ctx.strokeStyle = "rgba(58, 208, 122, 0.35)";
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(x + 0.5, topPad - 10);
-    ctx.lineTo(x + 0.5, bottomLimit + 6);
-    ctx.stroke();
-
-    // Tick marks on the wall.
-    ctx.strokeStyle = "rgba(58, 208, 122, 0.18)";
-    ctx.lineWidth = 1;
-    for (let y = topPad - 10; y < bottomLimit + 6; y += 6) {
-      ctx.beginPath();
-      ctx.moveTo(x - 3, y + 0.5);
-      ctx.lineTo(x + 0.5, y + 0.5);
-      ctx.stroke();
-    }
-  }
-
-  function drawShelves() {
-    shelves.forEach((s) => {
-      ctx.fillStyle = "#0c1812";
-      ctx.fillRect(s.position.x - shelfW / 2, s.position.y - shelfH / 2, shelfW, shelfH);
-      ctx.strokeStyle = "#3ad07a";
-      ctx.lineWidth = 1.25;
-      ctx.strokeRect(
-        s.position.x - shelfW / 2 + 0.5,
-        s.position.y - shelfH / 2 + 0.5,
-        shelfW - 1,
-        shelfH - 1
-      );
-      // small bracket triangle on the right (attaches to wall)
-      ctx.fillStyle = "rgba(58, 208, 122, 0.4)";
-      ctx.beginPath();
-      ctx.moveTo(s.position.x + shelfW / 2, s.position.y - shelfH / 2);
-      ctx.lineTo(s.position.x + shelfW / 2 + 6, s.position.y + shelfH / 2);
-      ctx.lineTo(s.position.x + shelfW / 2, s.position.y + shelfH / 2);
-      ctx.closePath();
-      ctx.fill();
-    });
-  }
-
   function drawPillar() {
     const x = platform.position.x - pillarW / 2;
     const y = platformY + platformH / 2;
@@ -210,12 +181,45 @@
     ctx.strokeStyle = "#1c2c23";
     ctx.lineWidth = 1;
     ctx.strokeRect(x + 0.5, y + 0.5, pillarW - 1, pillarH - 1);
-    // tiny base
-    const baseW = pillarW + 18;
-    ctx.fillStyle = "#11221a";
-    ctx.fillRect(x - 9, H - 8, baseW, 8);
-    ctx.strokeStyle = "#1c2c23";
-    ctx.strokeRect(x - 9 + 0.5, H - 8 + 0.5, baseW - 1, 7);
+  }
+
+  function drawWater(t) {
+    // Body of water
+    ctx.fillStyle = "rgba(91, 157, 255, 0.14)";
+    ctx.fillRect(0, waterY, W, H - waterY);
+    // Deeper tint at the bottom
+    const grad = ctx.createLinearGradient(0, waterY, 0, H);
+    grad.addColorStop(0, "rgba(91, 157, 255, 0.06)");
+    grad.addColorStop(1, "rgba(58, 90, 160, 0.22)");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, waterY, W, H - waterY);
+
+    // Animated surface wave
+    ctx.strokeStyle = "rgba(130, 200, 255, 0.55)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let x = 0; x <= W; x += 2) {
+      const y =
+        waterY +
+        Math.sin(x * 0.06 + t * 1.4) * 1.6 +
+        Math.sin(x * 0.13 - t * 0.8) * 0.9;
+      if (x === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    // A subtler ripple line below the surface
+    ctx.strokeStyle = "rgba(130, 200, 255, 0.18)";
+    ctx.beginPath();
+    for (let x = 0; x <= W; x += 4) {
+      const y =
+        waterY +
+        6 +
+        Math.sin(x * 0.04 - t * 1.1) * 1.2;
+      if (x === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
   }
 
   function drawPlatform() {
@@ -237,20 +241,20 @@
     }
     ctx.restore();
 
-    // label tag floating just below
+    // platform label
     ctx.save();
     ctx.translate(platform.position.x, platform.position.y + platformH / 2 + 14);
     ctx.fillStyle = "#0c1812";
     ctx.strokeStyle = "#3ad07a";
     ctx.lineWidth = 1;
-    roundRect(-46, -9, 92, 18, 3);
+    roundRect(-58, -9, 116, 18, 3);
     ctx.fill();
     ctx.stroke();
     ctx.fillStyle = "#3ad07a";
     ctx.font = '500 10px "JetBrains Mono", ui-monospace, monospace';
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText("▌ platform", 0, 0.5);
+    ctx.fillText("▌ tech platform", 0, 0.5);
     ctx.restore();
   }
 
@@ -266,7 +270,7 @@
     ctx.lineWidth = 1.5;
     ctx.stroke();
     ctx.fillStyle = d.color;
-    ctx.font = '500 10.5px "JetBrains Mono", ui-monospace, monospace';
+    ctx.font = '500 11px "JetBrains Mono", ui-monospace, monospace';
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(`${d.icon}  ${d.label}`, 0, 0.5);
@@ -279,10 +283,10 @@
     lastTime = now;
     Engine.update(engine, dt);
 
+    const t = engine.timing.timestamp / 1000;
     ctx.clearRect(0, 0, W, H);
-    drawShelfMount();
-    drawShelves();
     drawPillar();
+    drawWater(t);
     drawPlatform();
     boxes.forEach(drawBox);
     requestAnimationFrame(frame);
@@ -293,8 +297,9 @@
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
       fit();
-      Body.setPosition(leftWall,  { x: -wallT / 2,    y: H / 2 });
-      Body.setPosition(rightWall, { x: W + wallT / 2, y: H / 2 });
+      Body.setPosition(leftWall,   { x: -wallT / 2,    y: H / 2 });
+      Body.setPosition(rightWall,  { x: W + wallT / 2, y: H / 2 });
+      Body.setPosition(bottomWall, { x: W / 2,         y: H + wallT / 2 - 2 });
     }, 120);
   });
 

@@ -216,34 +216,13 @@ main {
   display: block;
   width: 100%;
   aspect-ratio: 7 / 6;
-  border: 1px dashed var(--rule);
-  border-radius: var(--radius);
-  background:
-    radial-gradient(120% 100% at 50% 0%, rgba(130, 244, 163, 0.04), transparent 70%),
-    linear-gradient(180deg, var(--bg-2), var(--bg));
+  background: transparent;
   cursor: grab;
   touch-action: none;
 }
 .hero__game canvas:active { cursor: grabbing; }
-.hero__game-hint {
-  margin: 0.5rem 0 0;
-  font-size: 0.75rem;
-  color: var(--ink-faint);
-  text-align: right;
-  letter-spacing: 0.02em;
-}
-.hero__game-hint kbd {
-  background: var(--bg-3);
-  border: 1px solid var(--rule);
-  border-bottom-width: 2px;
-  border-radius: 3px;
-  padding: 0 0.3rem;
-  font-size: 0.78em;
-  color: var(--ink-dim);
-}
 @media (max-width: 600px) {
   .hero__game { justify-self: start; }
-  .hero__game-hint { text-align: left; }
 }
 .wordmark {
   margin: 0 0 1rem;
