@@ -1,5 +1,5 @@
-// Tiny physics toy: stack the boxes on the swaying platform.
-// No score, no win state — just a fiddle activity.
+// Tiny physics toy: pull the boxes off the right-side wall shelves
+// and stack them on the swaying platform. No score, no win state.
 (() => {
   const canvas = document.getElementById("stacker");
   if (!canvas || typeof Matter === "undefined") return;
@@ -22,17 +22,18 @@
   const engine = Engine.create({ gravity: { x: 0, y: 1, scale: 0.0009 } });
   const world = engine.world;
 
-  // Side walls to keep boxes in play horizontally.
+  // Side walls keep boxes in play horizontally.
   const wallT = 80;
   const leftWall  = Bodies.rectangle(-wallT / 2,    H / 2, wallT, H * 4, { isStatic: true });
   const rightWall = Bodies.rectangle(W + wallT / 2, H / 2, wallT, H * 4, { isStatic: true });
   Composite.add(world, [leftWall, rightWall]);
 
-  // Platform — kinematic, gently sways horizontally.
-  const platformW = Math.min(220, W * 0.55);
+  // Platform — kinematic, sways gently. Sits on the left side now.
+  const platformW = Math.min(180, Math.max(140, W * 0.45));
   const platformH = 14;
   const platformY = H - 56;
-  const platformBaseX = W / 2;
+  const platformBaseX = Math.max(110, W * 0.30);
+  const swayAmp = 18;
   const platform = Bodies.rectangle(platformBaseX, platformY, platformW, platformH, {
     isStatic: true,
     friction: 0.95,
@@ -40,11 +41,11 @@
   });
   Composite.add(world, platform);
 
-  // Pillar under the platform (decorative — static, doesn't sway).
+  // Pillar under the platform (decorative).
   const pillarW = 26;
   const pillarH = H - platformY - platformH / 2;
 
-  // Boxes.
+  // ── Shelves on the right wall ─────────────────────────────────────
   const items = [
     { label: "Cloud Native", icon: "☁",  color: "#5b9dff" },
     { label: "Agentic AI",   icon: "✦",  color: "#b48cff" },
@@ -53,25 +54,37 @@
     { label: "Sovereignty",  icon: "⬡",  color: "#ff7a92" },
     { label: "Management",   icon: "▤",  color: "#7ee0d1" },
   ];
-  const boxW = Math.min(120, Math.max(96, W * 0.30));
-  const boxH = 28;
 
-  function spawnSlot(i) {
-    const col = i % 3;
-    const row = Math.floor(i / 3);
-    return {
-      x: 30 + col * (boxW + 6) + boxW / 2,
-      y: -30 - row * (boxH + 10),
-    };
+  const boxW = Math.min(120, Math.max(100, (W - platformBaseX - platformW / 2) * 0.9));
+  const boxH = 22;
+  const shelfH = 4;
+  const shelfW = boxW + 16;
+  const shelfRightEdge = W - 6;
+  const shelfCenterX = shelfRightEdge - shelfW / 2;
+  const topPad = 24;
+  const bottomLimit = H - 30;
+  const rowGap = Math.min(48, Math.max(40, (bottomLimit - topPad) / items.length));
+
+  const shelves = items.map((_, i) => {
+    const y = topPad + i * rowGap;
+    return Bodies.rectangle(shelfCenterX, y, shelfW, shelfH, {
+      isStatic: true,
+      friction: 0.9,
+      frictionStatic: 1.2,
+    });
+  });
+  Composite.add(world, shelves);
+
+  function shelfRestY(i) {
+    return topPad + i * rowGap - shelfH / 2 - boxH / 2;
   }
 
   function makeBox(item, i) {
-    const slot = spawnSlot(i);
-    const body = Bodies.rectangle(slot.x, slot.y, boxW, boxH, {
-      restitution: 0.12,
-      friction: 0.9,
-      frictionAir: 0.012,
-      density: 0.0045,
+    const body = Bodies.rectangle(shelfCenterX, shelfRestY(i), boxW, boxH, {
+      restitution: 0.08,
+      friction: 0.88,
+      frictionAir: 0.014,
+      density: 0.005,
       chamfer: { radius: 4 },
     });
     body.gameData = { ...item, w: boxW, h: boxH };
@@ -79,7 +92,7 @@
     return body;
   }
 
-  let boxes = items.map(makeBox);
+  const boxes = items.map(makeBox);
   Composite.add(world, boxes);
 
   // Mouse / touch drag.
@@ -101,11 +114,11 @@
   // Sway the platform.
   Events.on(engine, "beforeUpdate", () => {
     const t = engine.timing.timestamp / 1000;
-    const x = platformBaseX + Math.sin(t * 0.55) * 26;
+    const x = platformBaseX + Math.sin(t * 0.55) * swayAmp;
     Body.setPosition(platform, { x, y: platformY });
   });
 
-  // Recycle anything that falls off-screen.
+  // Anything that falls off — return it to its shelf.
   Events.on(engine, "afterUpdate", () => {
     boxes.forEach((b) => {
       const off =
@@ -113,8 +126,7 @@
         b.position.x < -80 ||
         b.position.x > W + 80;
       if (off) {
-        const slot = spawnSlot(b.spawnSlot);
-        Body.setPosition(b, slot);
+        Body.setPosition(b, { x: shelfCenterX, y: shelfRestY(b.spawnSlot) });
         Body.setVelocity(b, { x: 0, y: 0 });
         Body.setAngularVelocity(b, 0);
         Body.setAngle(b, 0);
@@ -122,11 +134,10 @@
     });
   });
 
-  // Press "r" to reset positions.
+  // Press "r" to reset everything back onto the shelves.
   function reset() {
     boxes.forEach((b, i) => {
-      const slot = spawnSlot(i);
-      Body.setPosition(b, slot);
+      Body.setPosition(b, { x: shelfCenterX, y: shelfRestY(i) });
       Body.setVelocity(b, { x: 0, y: 0 });
       Body.setAngularVelocity(b, 0);
       Body.setAngle(b, 0);
@@ -145,6 +156,50 @@
     ctx.arcTo(x, y + h, x, y, r);
     ctx.arcTo(x, y, x + w, y, r);
     ctx.closePath();
+  }
+
+  function drawShelfMount() {
+    // Vertical "wall" the shelves are bolted to.
+    const x = shelfRightEdge;
+    ctx.strokeStyle = "rgba(58, 208, 122, 0.35)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(x + 0.5, topPad - 10);
+    ctx.lineTo(x + 0.5, bottomLimit + 6);
+    ctx.stroke();
+
+    // Tick marks on the wall.
+    ctx.strokeStyle = "rgba(58, 208, 122, 0.18)";
+    ctx.lineWidth = 1;
+    for (let y = topPad - 10; y < bottomLimit + 6; y += 6) {
+      ctx.beginPath();
+      ctx.moveTo(x - 3, y + 0.5);
+      ctx.lineTo(x + 0.5, y + 0.5);
+      ctx.stroke();
+    }
+  }
+
+  function drawShelves() {
+    shelves.forEach((s) => {
+      ctx.fillStyle = "#0c1812";
+      ctx.fillRect(s.position.x - shelfW / 2, s.position.y - shelfH / 2, shelfW, shelfH);
+      ctx.strokeStyle = "#3ad07a";
+      ctx.lineWidth = 1.25;
+      ctx.strokeRect(
+        s.position.x - shelfW / 2 + 0.5,
+        s.position.y - shelfH / 2 + 0.5,
+        shelfW - 1,
+        shelfH - 1
+      );
+      // small bracket triangle on the right (attaches to wall)
+      ctx.fillStyle = "rgba(58, 208, 122, 0.4)";
+      ctx.beginPath();
+      ctx.moveTo(s.position.x + shelfW / 2, s.position.y - shelfH / 2);
+      ctx.lineTo(s.position.x + shelfW / 2 + 6, s.position.y + shelfH / 2);
+      ctx.lineTo(s.position.x + shelfW / 2, s.position.y + shelfH / 2);
+      ctx.closePath();
+      ctx.fill();
+    });
   }
 
   function drawPillar() {
@@ -167,13 +222,11 @@
     ctx.save();
     ctx.translate(platform.position.x, platform.position.y);
     ctx.rotate(platform.angle);
-    // body
     ctx.fillStyle = "#0c1812";
     ctx.fillRect(-platformW / 2, -platformH / 2, platformW, platformH);
     ctx.strokeStyle = "#3ad07a";
     ctx.lineWidth = 1.5;
     ctx.strokeRect(-platformW / 2 + 0.5, -platformH / 2 + 0.5, platformW - 1, platformH - 1);
-    // top hatching
     ctx.strokeStyle = "rgba(58, 208, 122, 0.35)";
     ctx.lineWidth = 1;
     for (let x = -platformW / 2 + 6; x < platformW / 2 - 6; x += 8) {
@@ -213,22 +266,11 @@
     ctx.lineWidth = 1.5;
     ctx.stroke();
     ctx.fillStyle = d.color;
-    ctx.font = '500 11px "JetBrains Mono", ui-monospace, monospace';
+    ctx.font = '500 10.5px "JetBrains Mono", ui-monospace, monospace';
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(`${d.icon}  ${d.label}`, 0, 0.5);
     ctx.restore();
-  }
-
-  function drawGrid() {
-    // Subtle vertical guide where the platform rests.
-    ctx.strokeStyle = "rgba(58, 208, 122, 0.08)";
-    ctx.setLineDash([2, 4]);
-    ctx.beginPath();
-    ctx.moveTo(W / 2, 0);
-    ctx.lineTo(W / 2, H);
-    ctx.stroke();
-    ctx.setLineDash([]);
   }
 
   let lastTime = performance.now();
@@ -238,14 +280,14 @@
     Engine.update(engine, dt);
 
     ctx.clearRect(0, 0, W, H);
-    drawGrid();
+    drawShelfMount();
+    drawShelves();
     drawPillar();
     drawPlatform();
     boxes.forEach(drawBox);
     requestAnimationFrame(frame);
   }
 
-  // Re-fit on resize (and rebuild walls). Keeps things sensible if user resizes.
   let resizeTimer = null;
   window.addEventListener("resize", () => {
     clearTimeout(resizeTimer);
