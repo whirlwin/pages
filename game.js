@@ -193,11 +193,10 @@
   // world is W×H, so down-scale Matter's mouse mapping by 1/dpr.
   const mouse = Mouse.create(canvas);
   Mouse.setScale(mouse, { x: 1 / dpr, y: 1 / dpr });
-  // Matter binds a wheel handler that always calls preventDefault, which
-  // blocks page scrolling whenever the cursor is over the canvas. Unbind
-  // it so the page stays scrollable.
-  canvas.removeEventListener("mousewheel", mouse.mousewheel);
-  canvas.removeEventListener("DOMMouseScroll", mouse.mousewheel);
+  // Matter binds a non-passive 'wheel' handler that always calls
+  // preventDefault, which blocks page scrolling whenever the cursor is
+  // over the canvas. Unbind it so the page stays scrollable.
+  canvas.removeEventListener("wheel", mouse.mousewheel);
   const mc = MouseConstraint.create(engine, {
     mouse,
     constraint: { stiffness: 0.2, damping: 0.12, render: { visible: false } },
