@@ -1,0 +1,19 @@
+[     770ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ about:blank:0
+[     771ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ about:blank:0
+[     772ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ about:blank:0
+[     773ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ about:blank:0
+[     774ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ about:blank:0
+[     770ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ about:blank:0
+[     771ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ about:blank:0
+[     772ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ about:blank:0
+[     773ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ about:blank:0
+[     774ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ about:blank:0
+[    2339ms] [WARNING] The key "target-densitydpi" is not supported. @ https://docs.google.com/presentation/d/1FeDrNJdu5OJDiYd5cu-J9rHYRgycRTLl2o906AEyl-M/embed:9
+[    2339ms] [ERROR] Failed to load resource: net::ERR_FAILED @ chrome-extension://invalid/:0
+[    2774ms] Uncaught (in promise) SecurityError: Failed to construct 'PresentationRequest': The document is sandboxed and lacks the 'allow-presentation' flag.
+    at U.initialize (https://www.gstatic.com/eureka/clank/148/cast_sender.js:82:86)
+    at chrome.cast.initialize (https://www.gstatic.com/eureka/clank/148/cast_sender.js:94:131)
+    at Qb (https://www.gstatic.com/cast/sdk/libs/sender/1.0/cast_framework.js:51:397)
+    at Xb (https://www.gstatic.com/cast/sdk/libs/sender/1.0/cast_framework.js:53:287)
+    at init (https://f.vimeocdn.com/p/4.46.50/js/player.module.js:1:352509)
+    at <anonymous> (https://f.vimeocdn.com/p/4.46.50/js/player.module.js:1:358156)

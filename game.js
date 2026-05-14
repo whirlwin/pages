@@ -473,7 +473,7 @@
   // ── Fauna: seagulls overhead, fish below the surface ──────────────
   // They start drifting in after one minute of real time, so the toy
   // gains some life if you leave the page open.
-  const FAUNA_AFTER = 60; // seconds
+  const FAUNA_AFTER = 30; // seconds
   const fauna = {
     seagulls: [],
     fish: [],

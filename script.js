@@ -1,44 +1,6 @@
 // whirlwin.io — tiny enhancements. No framework, no tracking.
 
 (() => {
-  // ── Typing animation on the hero command line ──────────────────────
-  const el = document.getElementById("typed");
-  if (el) {
-    const phrases = [
-      "whirlwin --help",
-      "ssh me@whirlwin.io",
-      "cat ~/.about",
-      "make things && ship",
-      "echo \"hi.\""
-    ];
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    if (reduced) {
-      el.textContent = phrases[0];
-    } else {
-      let p = 0, i = 0, deleting = false;
-      const tick = () => {
-        const current = phrases[p];
-        if (!deleting) {
-          el.textContent = current.slice(0, ++i);
-          if (i === current.length) {
-            deleting = true;
-            return setTimeout(tick, 2200);
-          }
-        } else {
-          el.textContent = current.slice(0, --i);
-          if (i === 0) {
-            deleting = false;
-            p = (p + 1) % phrases.length;
-          }
-        }
-        setTimeout(tick, deleting ? 35 : 70 + Math.random() * 60);
-      };
-      // delay so the rise animation can play first
-      setTimeout(tick, 600);
-    }
-  }
-
   // ── Clock in the status bar ────────────────────────────────────────
   const clock = document.getElementById("clock");
   if (clock) {
