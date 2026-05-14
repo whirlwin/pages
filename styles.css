@@ -218,7 +218,9 @@ main {
   aspect-ratio: 7 / 6;
   background: transparent;
   cursor: grab;
-  touch-action: none;
+  /* Allow vertical page scroll while still letting Matter receive
+     horizontal drags for box manipulation. */
+  touch-action: pan-y;
 }
 .hero__game canvas:active { cursor: grabbing; }
 @media (max-width: 600px) {
