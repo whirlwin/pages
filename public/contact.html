@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>whirlwin.io — contact</title>
+    <meta name="description" content="Contact and legal identity behind whirlwin.io — Øyvind Ødegård. Norwegian organization number, DUNS, and public email." />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#08100b" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&family=VT323&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2308100b'/%3E%3Ctext x='50%25' y='62%25' text-anchor='middle' font-family='monospace' font-weight='700' font-size='22' fill='%2382f4a3'%3E~%3C/text%3E%3C/svg%3E" />
+  </head>
+
+  <body>
+    <div class="scanlines" aria-hidden="true"></div>
+    <div class="vignette" aria-hidden="true"></div>
+    <div class="grain" aria-hidden="true"></div>
+
+    <header class="statusbar" role="banner">
+      <div class="statusbar__left">
+        <span class="dot dot--live" aria-hidden="true"></span>
+        <span class="statusbar__path">oyvind@whirlwin:~/contact</span>
+      </div>
+      <nav class="statusbar__nav" aria-label="primary">
+        <a href="/#apps">apps</a>
+        <a href="/#writing">writing</a>
+        <a href="/#elsewhere">elsewhere</a>
+        <a href="/contact" aria-current="page">contact</a>
+      </nav>
+      <div class="statusbar__right">
+        <span id="clock" aria-live="off">--:--:-- UTC</span>
+        <span class="statusbar__sep">·</span>
+        <span>v0.1.0</span>
+      </div>
+    </header>
+
+    <main>
+      <section class="masthead" aria-label="site">
+        <h1 class="wordmark">
+          <a href="/">whirlwin<span class="wordmark__tld">.io</span></a>
+        </h1>
+        <p class="masthead__sub">contact &amp; legal identity</p>
+      </section>
+
+      <section id="contact" class="block" aria-labelledby="contact-heading">
+        <header class="block__head">
+          <span class="prompt">$</span>
+          <h2 id="contact-heading"><span class="cmd">cat</span> <span class="arg">./contact.txt</span></h2>
+          <span class="block__meta">Norway</span>
+        </header>
+
+        <p class="block__body--prose">The business and legal identity behind whirlwin.io.</p>
+
+        <dl class="idcard">
+          <div>
+            <dt>email</dt>
+            <dd><a href="mailto:info@whirlwin.io">info@whirlwin.io</a></dd>
+          </div>
+          <div>
+            <dt>organization no.</dt>
+            <dd>937864965</dd>
+          </div>
+          <div>
+            <dt>DUNS</dt>
+            <dd>348472132</dd>
+          </div>
+        </dl>
+      </section>
+    </main>
+
+    <footer class="footer" role="contentinfo">
+      <pre class="footer__art" aria-hidden="true">
+ ┌───────────────────────────────────────────────┐
+ │  built with vim, coffee, and dubious choices  │
+ └───────────────────────────────────────────────┘</pre>
+      <p>
+        © <span id="year">2026</span> Øyvind Ødegård · no cookies, no trackers, no js framework ·
+        <a href="https://codeberg.org/whirlwin/pages">view source</a>
+      </p>
+    </footer>
+
+    <script src="./script.js" defer></script>
+  </body>
+</html>
