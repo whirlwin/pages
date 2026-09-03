@@ -111,6 +111,9 @@ code, kbd, pre { font-family: var(--mono); }
 .statusbar__path { color: var(--phosphor); }
 .statusbar__nav {
   flex: 1; display: flex; gap: 1.25rem; justify-content: center;
+  /* `safe` falls back to start-alignment when the nav overflows, so the
+     leading items stay reachable instead of being clipped unscrollably. */
+  justify-content: safe center;
   overflow-x: auto; scrollbar-width: none;
 }
 .statusbar__nav::-webkit-scrollbar { display: none; }
@@ -502,6 +505,78 @@ main {
     gap: 0.35rem 0;
   }
   .article__source { align-self: start; }
+}
+
+/* ── Blog posts ───────────────────────────────────────────────────── */
+
+.posts {
+  display: grid;
+  gap: 0.4rem;
+  max-width: 80ch;
+}
+
+.post {
+  padding: 1.4rem 0;
+  border-bottom: 1px dotted var(--rule);
+}
+.post:first-child { padding-top: 0.4rem; }
+.post:last-child { border-bottom: none; }
+
+.post__head {
+  display: grid;
+  gap: 0.3rem;
+  margin-bottom: 0.75rem;
+}
+
+.post__title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.post__title a {
+  color: var(--phosphor);
+  border-bottom: none;
+}
+.post__title a::before { content: "# "; color: var(--ink-faint); }
+.post__title a:hover { background: var(--phosphor); color: var(--bg); }
+.post__title a:hover::before { color: var(--bg); }
+
+.post__meta {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  color: var(--ink-faint);
+}
+.post__date { color: var(--amber); }
+.post__author { color: var(--ink-dim); }
+.post__author::before { content: "by "; color: var(--ink-faint); }
+.post__sep { color: var(--rule-hot); }
+
+.post__body {
+  color: var(--ink-dim);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+.post__body p { margin: 0 0 0.9rem; }
+.post__body p:last-child { margin-bottom: 0; }
+.post__body strong { color: var(--phosphor); font-weight: 700; }
+.post__body em { color: var(--amber); font-style: normal; }
+.post__body code {
+  background: var(--bg-3);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 0.05rem 0.35rem;
+  font-size: 0.86em;
+  color: var(--ink);
+}
+
+@media (max-width: 600px) {
+  .post { padding: 1.1rem 0; }
+  .post__title { font-size: 1rem; }
 }
 
 /* ── Stack pre block ──────────────────────────────────────────────── */

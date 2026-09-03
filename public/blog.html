@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>whirlwin.io — contact</title>
-    <meta name="description" content="Contact and legal identity behind whirlwin.io — Øyvind Ødegård. Norwegian organization number, DUNS, and public email." />
+    <title>whirlwin.io — blog</title>
+    <meta name="description" content="Notes from Øyvind Ødegård on AI, platform engineering, and whatever else is being tinkered with." />
     <meta name="color-scheme" content="dark" />
     <meta name="theme-color" content="#08100b" />
 
@@ -27,14 +27,14 @@
     <header class="statusbar" role="banner">
       <div class="statusbar__left">
         <span class="dot dot--live" aria-hidden="true"></span>
-        <span class="statusbar__path">oyvind@whirlwin:~/contact</span>
+        <span class="statusbar__path">oyvind@whirlwin:~/blog</span>
       </div>
       <nav class="statusbar__nav" aria-label="primary">
         <a href="/#apps">apps</a>
-        <a href="/blog">blog</a>
+        <a href="/blog" aria-current="page">blog</a>
         <a href="/#writing">writing</a>
         <a href="/#elsewhere">elsewhere</a>
-        <a href="/contact" aria-current="page">contact</a>
+        <a href="/contact">contact</a>
       </nav>
       <div class="statusbar__right">
         <span id="clock" aria-live="off">--:--:-- UTC</span>
@@ -48,32 +48,53 @@
         <h1 class="wordmark">
           <a href="/">whirlwin<span class="wordmark__tld">.io</span></a>
         </h1>
-        <p class="masthead__sub">contact &amp; legal identity</p>
+        <p class="masthead__sub">blog — notes from the terminal</p>
       </section>
 
-      <section id="contact" class="block" aria-labelledby="contact-heading">
+      <section id="blog" class="block" aria-labelledby="blog-heading">
         <header class="block__head">
           <span class="prompt">$</span>
-          <h2 id="contact-heading"><span class="cmd">cat</span> <span class="arg">./contact.txt</span></h2>
-          <span class="block__meta">Norway</span>
+          <h2 id="blog-heading"><span class="cmd">tail</span> <span class="arg">-f ./blog</span></h2>
         </header>
 
-        <p class="block__body--prose">The business and legal identity behind whirlwin.io.</p>
+        <!--
+          ── Adding an entry ────────────────────────────────────────────
+          Copy one <article class="post"> block, paste it at the TOP of
+          the list below (newest first), and edit:
+            - id="..."            slug, used for the #permalink
+            - datetime="..."      ISO date, YYYY-MM-DD (machine-readable)
+            - the visible date    written out for humans
+            - the author name
+            - the title and body
+          Nothing else to do — no build step.
+        -->
+        <div class="posts">
 
-        <dl class="idcard">
-          <div>
-            <dt>email</dt>
-            <dd><a href="mailto:info@whirlwin.io">info@whirlwin.io</a></dd>
-          </div>
-          <div>
-            <dt>organization no.</dt>
-            <dd>937864965</dd>
-          </div>
-          <div>
-            <dt>DUNS</dt>
-            <dd>348472132</dd>
-          </div>
-        </dl>
+          <article class="post" id="hello-world">
+            <header class="post__head">
+              <h3 class="post__title"><a href="#hello-world">Hello, world</a></h3>
+              <p class="post__meta">
+                <time class="post__date" datetime="2026-09-03">2026-09-03</time>
+                <span class="post__sep" aria-hidden="true">·</span>
+                <span class="post__author">Øyvind Ødegård</span>
+              </p>
+            </header>
+            <div class="post__body">
+              <p>
+                This is the blog. Hand-rolled HTML like the rest of the site — no
+                build step, no generator, no database. An entry is a
+                <code>&lt;article class="post"&gt;</code> block in
+                <code>public/blog.html</code>: copy the one above, put the new one
+                on top, edit the date, author and text, push.
+              </p>
+              <p>
+                Expect notes on AI and platform engineering, the odd side project,
+                and whatever turns out to be harder than it looked.
+              </p>
+            </div>
+          </article>
+
+        </div>
       </section>
     </main>
 
