@@ -705,6 +705,28 @@ main {
   gap: 0.9rem;
   flex-wrap: wrap;
 }
+/* The blog masthead pairs the portrait with a standing tagline. That is a
+   sentence rather than a page name, so it takes a smaller step off the
+   display scale and sets its own measure to wrap on. */
+.masthead--intro { align-items: center; }
+.masthead--intro .masthead__title {
+  font-size: clamp(1.5rem, 3.8vw, 2.3rem);
+  line-height: 1.05;
+  max-width: 30ch;
+}
+.masthead__portrait {
+  flex: none;
+  width: clamp(88px, 18vw, 140px);
+  height: auto;
+  /* Same rounded-square treatment as the app card logos, plus a phosphor
+     bloom so the illustration sits inside the CRT look, not on top of it. */
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  box-shadow:
+    0 0 0 1px rgba(58, 208, 122, 0.16),
+    0 0 18px rgba(58, 208, 122, 0.12);
+}
+
 /* The page name is the heading now that the wordmark lives in the bar; it
    keeps the wordmark's display voice so the masthead still reads as one. */
 .masthead__title {

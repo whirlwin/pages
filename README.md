@@ -14,6 +14,7 @@ so repo files like this README stay private.
 - `public/script.js` — tiny enhancements (typing animation, clock, easter egg)
 - `public/game.js` — the easter-egg game
 - `public/whirlwin-lockup.png` — the wordmark logo in the status bar, linking home
+- `public/profile.jpg` — the portrait in the blog masthead
 
 ## Local preview
 
