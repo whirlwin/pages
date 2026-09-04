@@ -23,6 +23,16 @@ cd public && python3 -m http.server 8080
 # → http://localhost:8080
 ```
 
+## Cache busting
+
+Pages serves HTML with `max-age=0` but CSS, JS and images with
+`max-age=14400`, so a returning visitor can get new HTML against a
+four-hour-old stylesheet. The `<link>` and `<script>` tags therefore carry a
+hand-bumped version query (`/styles.css?v=2`, `/game.js?v=11`) — **bump it
+when you change that file**, or the change will not reach returning visitors
+for four hours. Assets are referenced root-absolute so they resolve the same
+from `/blog` and `/blog/`.
+
 ## Deploy (Cloudflare Pages)
 
 Hosted on Cloudflare Pages (project `whirlwin-io`) via wrangler direct upload.
