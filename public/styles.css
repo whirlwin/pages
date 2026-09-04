@@ -409,87 +409,6 @@ main {
   color: var(--ink-dim);
 }
 
-/* ── Articles & videos list ───────────────────────────────────────── */
-
-.articles {
-  list-style: none; padding: 0; margin: 0;
-  display: grid;
-  gap: 0.4rem;
-  max-width: 80ch;
-}
-.article {
-  display: grid;
-  grid-template-columns: 5rem 1fr auto;
-  grid-template-areas:
-    "kind  title  source"
-    ".     desc   .";
-  gap: 0.2rem 1rem;
-  align-items: baseline;
-  padding: 0.85rem 0;
-  border-bottom: 1px dotted var(--rule);
-}
-.article:last-child { border-bottom: none; }
-
-.article__kind {
-  grid-area: kind;
-  font-size: 0.72rem;
-  text-transform: lowercase;
-  letter-spacing: 0.06em;
-  color: var(--ink-faint);
-  border: 1px solid var(--rule-hot);
-  border-radius: 999px;
-  padding: 0.05rem 0.55rem;
-  justify-self: start;
-  align-self: center;
-}
-.article__kind--talk {
-  color: var(--amber);
-  border-color: rgba(255, 180, 84, 0.45);
-}
-
-.article__title {
-  grid-area: title;
-  color: var(--phosphor);
-  font-size: 1rem;
-  font-weight: 500;
-  border-bottom: 1px dotted var(--phosphor-2);
-  line-height: 1.35;
-}
-.article__title:hover {
-  background: var(--phosphor);
-  color: var(--bg);
-  border-bottom-color: var(--phosphor);
-}
-
-.article__desc {
-  grid-area: desc;
-  margin: 0;
-  font-size: 0.9rem;
-  color: var(--ink-dim);
-  line-height: 1.45;
-}
-
-.article__source {
-  grid-area: source;
-  font-size: 0.78rem;
-  color: var(--ink-faint);
-  align-self: center;
-}
-.article__source::before { content: "↗ "; color: var(--phosphor-2); }
-
-@media (max-width: 600px) {
-  .article {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      "kind"
-      "title"
-      "desc"
-      "source";
-    gap: 0.35rem 0;
-  }
-  .article__source { align-self: start; }
-}
-
 /* ── Blog posts ───────────────────────────────────────────────────── */
 
 .posts {
@@ -556,6 +475,24 @@ main {
   font-size: 0.86em;
   color: var(--ink);
 }
+
+/* An external entry's title leaves the site, so it takes an outbound arrow
+   in place of the permalink hash, and names its kind and host. */
+.post--external .post__title a::before { content: "↗ "; }
+.post__kind {
+  font-size: 0.72rem;
+  text-transform: lowercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+  border: 1px solid var(--rule-hot);
+  border-radius: 999px;
+  padding: 0.05rem 0.55rem;
+}
+.post__kind--talk {
+  color: var(--amber);
+  border-color: rgba(255, 180, 84, 0.45);
+}
+.post__source { color: var(--ink-faint); }
 
 @media (max-width: 600px) {
   .post { padding: 1.1rem 0; }
@@ -710,9 +647,15 @@ main {
    display scale and sets its own measure to wrap on. */
 .masthead--intro { align-items: center; }
 .masthead--intro .masthead__title {
-  font-size: clamp(1.5rem, 3.8vw, 2.3rem);
-  line-height: 1.05;
-  max-width: 30ch;
+  /* Set in the body mono, matching the front page headline, rather than the
+     VT323 display face the page names use. */
+  font-family: var(--mono);
+  font-size: clamp(1.1rem, 2vw, 1.4rem);
+  line-height: 1.4;
+  letter-spacing: 0.005em;
+  color: var(--ink);
+  text-shadow: none;
+  max-width: 46ch;
 }
 .masthead__portrait {
   flex: none;

@@ -64,5 +64,12 @@ top, and edit:
 - `.post__author` — the author name
 - the title and the body paragraphs
 
+An entry that lives on someone else's site (an article or a talk published
+elsewhere) takes `class="post post--external"`, points its title at the
+external URL instead of a `#permalink`, and adds a `.post__kind` badge
+(`article` / `talk`) plus a `.post__source` domain to the meta line. Date it
+with the date that site shows. The site's writing all lives here — the nav's
+`writing` link points at `/blog`.
+
 No build step, no front matter, no generator. The block head on the page has no
 item count, so adding an entry is a single edit.
