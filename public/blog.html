@@ -83,6 +83,77 @@
         -->
         <div class="posts">
 
+          <article class="post" id="cloudflare-cost-caps">
+            <header class="post__head">
+              <h3 class="post__title"><a href="#cloudflare-cost-caps">Controlling Cloudflare costs with caps</a></h3>
+              <p class="post__meta">
+                <time class="post__date" datetime="2026-09-04">2026-09-04</time>
+                <span class="post__sep" aria-hidden="true">·</span>
+                <span class="post__author">Øyvind Ødegård</span>
+              </p>
+            </header>
+            <div class="post__body">
+              <p>
+                Usage-based billing has no brakes. A Worker scales to whatever shows
+                up, which is the whole point — right up until what shows up is a
+                Worker fetching a URL that routes back to itself, or a scraper that
+                found your endpoint, or <code>* * * * *</code> where you meant
+                <code>0 * * * *</code>. Nothing errors. Nothing crashes. The request
+                count just climbs, and the first thing that tells you is the invoice.
+              </p>
+              <p>
+                Cloudflare has closed part of this gap. Since April there is a
+                <strong>Billable Usage</strong> dashboard under Manage Account →
+                Billing, fed by the same system that generates the invoice, so the
+                daily numbers actually match the bill. Alongside it are
+                <strong>budget alerts</strong>: set a dollar threshold and you get an
+                email when your projected monthly spend crosses it, calculated daily,
+                once per billing cycle, on pay-as-you-go accounts. Both are genuinely
+                useful and you should turn them on.
+              </p>
+              <p>
+                Neither one stops anything. That is the distinction worth being clear
+                about: an alert is a smoke detector, and what you want at 3am is a
+                sprinkler. The one native control that does bound something is the
+                per-invocation CPU limit — <code>limits.cpu_ms</code> in your Wrangler
+                config, or Settings → CPU Limits in the dashboard. The docs recommend
+                it against exactly this scenario, and it works, but it caps the CPU one
+                request may burn. It has nothing to say about ten million of them.
+              </p>
+              <p>
+                So what does a cap have to do? Watch the month's spend, and when it
+                crosses your number, take away the ways traffic reaches your code.
+                Concretely that means disabling the <code>workers.dev</code> subdomain,
+                detaching custom domains, removing routes in every zone, and clearing
+                cron triggers — and writing each of those down before you remove it, so
+                that resuming restores what was actually there rather than your best
+                recollection of it. The script itself is never touched.
+              </p>
+              <p>
+                The uncomfortable part is measurement. There is no public endpoint for
+                <em>what do I owe right now</em>, so a cap has to estimate: this
+                month's requests and CPU time out of usage analytics, priced with the
+                published Workers rates. That is close, but it is not your invoice, and
+                a tool that pretends otherwise is lying to you. It also means a
+                Workers-only cap says nothing about R2, D1 or KV, and that pulling the
+                public entry points does not stop a service binding from another
+                Worker, a Durable Object alarm, or a queue consumer.
+              </p>
+              <p>
+                A cap built on an estimate is a safety net, not a guarantee — and a
+                safety net is still worth having, as long as it is honest about where
+                its edges are. That is the trade I decided I wanted, so I built
+                <a href="https://controlflare.whirlwin.io/" rel="noopener">Controlflare</a>
+                to make it: a monthly cap per account, checked every five minutes,
+                pausing Workers when the estimate crosses it and never resuming them on
+                its own. Full disclosure, it is mine. It is free while it is in beta,
+                and if handing an API token to someone else's dashboard is not your
+                idea of cost control, the same Worker deploys into your own account
+                instead.
+              </p>
+            </div>
+          </article>
+
           <article class="post" id="hello-world">
             <header class="post__head">
               <h3 class="post__title"><a href="#hello-world">Hello, world</a></h3>
