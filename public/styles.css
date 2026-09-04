@@ -109,6 +109,22 @@ code, kbd, pre { font-family: var(--mono); }
   white-space: nowrap;
 }
 .statusbar__path { color: var(--phosphor); }
+.statusbar__logo {
+  display: flex; align-items: center;
+  padding: 0;
+  border-bottom: none;
+}
+.statusbar__logo img {
+  display: block;
+  height: 22px; width: auto;
+  opacity: 0.9;
+  transition: opacity 120ms ease, filter 120ms ease;
+}
+.statusbar__logo:hover { background: transparent; }
+.statusbar__logo:hover img {
+  opacity: 1;
+  filter: drop-shadow(0 0 6px rgba(130, 244, 163, 0.45));
+}
 .statusbar__nav {
   flex: 1; display: flex; gap: 1.25rem; justify-content: center;
   /* `safe` falls back to start-alignment when the nav overflows, so the
@@ -712,6 +728,7 @@ main {
 
 @media (max-width: 480px) {
   .statusbar__nav { gap: 0.85rem; font-size: 0.78rem; }
+  .statusbar__path { display: none; }
   .block__head { flex-direction: row; align-items: center; }
   .block__meta { width: 100%; margin-left: 0; }
 }

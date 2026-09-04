@@ -13,6 +13,7 @@ so repo files like this README stay private.
 - `public/styles.css` — all the styling
 - `public/script.js` — tiny enhancements (typing animation, clock, easter egg)
 - `public/game.js` — the easter-egg game
+- `public/whirlwin-lockup.png` — the wordmark logo in the status bar, linking home
 
 ## Local preview
 
