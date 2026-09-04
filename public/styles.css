@@ -108,7 +108,6 @@ code, kbd, pre { font-family: var(--mono); }
   display: flex; align-items: center; gap: 0.5rem;
   white-space: nowrap;
 }
-.statusbar__path { color: var(--phosphor); }
 .statusbar__logo {
   display: flex; align-items: center;
   padding: 0;
@@ -143,22 +142,9 @@ code, kbd, pre { font-family: var(--mono); }
 .statusbar__nav a:hover { color: var(--phosphor); background: transparent; }
 .statusbar__sep { color: var(--ink-faint); }
 
-.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-faint); }
-.dot--live {
-  background: var(--phosphor);
-  box-shadow: 0 0 8px var(--phosphor), 0 0 14px rgba(130, 244, 163, 0.4);
-  animation: pulse 1.8s ease-in-out infinite;
-}
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50%      { opacity: 0.45; }
-}
-
 @media (max-width: 640px) {
-  /* The logo takes the left slot from here down; the clock and the terminal
-     path are decorative, and the nav needs the width more than they do. */
+  /* The clock is decorative; the nav needs the width more than it does. */
   .statusbar__right { display: none; }
-  .statusbar__path { display: none; }
 }
 
 /* ── Layout primitives ────────────────────────────────────────────── */
@@ -249,32 +235,10 @@ main {
 @media (max-width: 600px) {
   .hero__game { justify-self: start; }
 }
-.wordmark {
-  margin: 0 0 1rem;
-  font-family: "VT323", var(--mono);
-  font-weight: 400;
-  font-size: clamp(4rem, 13vw, 8rem);
-  line-height: 0.9;
-  letter-spacing: 0;
-  color: var(--phosphor-2);
-  text-shadow:
-    0 0 10px rgba(58, 208, 122, 0.32),
-    0 0 24px rgba(58, 208, 122, 0.12);
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0;
-  word-break: break-word;
-}
-.wordmark__tld {
-  font-size: 0.7em;
-  color: var(--amber);
-  opacity: 0.85;
-  text-shadow: 0 0 6px rgba(255, 180, 84, 0.18);
-}
-
 .hero__headline {
   max-width: 62ch;
   margin: 0;
+  font-weight: 400;
   font-size: clamp(1.1rem, 2vw, 1.4rem);
   line-height: 1.4;
   color: var(--ink);
@@ -715,13 +679,11 @@ main {
 /* ── Hero entry animation ─────────────────────────────────────────── */
 
 @media (prefers-reduced-motion: no-preference) {
-  .wordmark, .hero__headline {
+  .hero__headline, .masthead__title {
     opacity: 0;
     transform: translateY(8px);
-    animation: rise 0.6s ease forwards;
+    animation: rise 0.6s ease forwards 0.05s;
   }
-  .wordmark       { animation-delay: 0.05s; }
-  .hero__headline { animation-delay: 0.35s; }
 }
 @keyframes rise {
   to { opacity: 1; transform: none; }
@@ -743,13 +705,19 @@ main {
   gap: 0.9rem;
   flex-wrap: wrap;
 }
-.masthead .wordmark { font-size: clamp(1.8rem, 7vw, 2.75rem); }
-.masthead .wordmark a {
-  color: inherit;
-  border-bottom: none;
+/* The page name is the heading now that the wordmark lives in the bar; it
+   keeps the wordmark's display voice so the masthead still reads as one. */
+.masthead__title {
+  margin: 0;
+  font-family: "VT323", var(--mono);
+  font-weight: 400;
+  font-size: clamp(2.1rem, 7vw, 3.25rem);
+  line-height: 1;
+  color: var(--phosphor-2);
+  text-shadow:
+    0 0 10px rgba(58, 208, 122, 0.32),
+    0 0 24px rgba(58, 208, 122, 0.12);
 }
-.masthead .wordmark a:hover { background: transparent; color: var(--phosphor); }
-.masthead__sub { color: var(--ink-dim); }
 
 .idcard {
   list-style: none;
