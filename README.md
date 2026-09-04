@@ -54,22 +54,25 @@ The "apps" section is a simple `<ol class="apps">` in `public/index.html`. Each
 
 ## Adding a blog entry
 
-All entries live inline in `public/blog.html` inside `<div class="posts">`,
-newest first. Copy an existing `<article class="post">` block, paste it at the
-top, and edit:
+`public/blog.html` (`/blog`) is an index of previews. An entry of your own
+lives in its own file at `public/blog/<slug>.html`, served at `/blog/<slug>`
+— Pages resolves `/blog` to `blog.html` in preference to the `blog/`
+directory, so the two do not collide.
 
-- `id="..."` — the slug, which is also the `#permalink`
-- `<time datetime="YYYY-MM-DD">` — the machine-readable date, and the visible
-  date next to it
-- `.post__author` — the author name
-- the title and the body paragraphs
+Your own writing is two edits:
 
-An entry that lives on someone else's site (an article or a talk published
-elsewhere) takes `class="post post--external"`, points its title at the
-external URL instead of a `#permalink`, and adds a `.post__kind` badge
-(`article` / `talk`) plus a `.post__source` domain to the meta line. Date it
-with the date that site shows. The site's writing all lives here — the nav's
-`writing` link points at `/blog`.
+1. Copy `public/blog/cloudflare-cost-caps.html` to
+   `public/blog/<slug>.html` and edit the `<title>`, the description meta,
+   the `h1`, the date and the body.
+2. Add an `<article class="post">` at the top of `<div class="posts">` in
+   `public/blog.html` with `id="<slug>"`, its title and its `.post__more`
+   link both pointing at `/blog/<slug>`, and a sentence or two of preview.
 
-No build step, no front matter, no generator. The block head on the page has no
-item count, so adding an entry is a single edit.
+Something published elsewhere is one edit: an
+`<article class="post post--external">` in the index, its title pointing at
+the external URL, plus a `.post__kind` badge (`article` / `talk`) and a
+`.post__source` domain. Date it with the date that site shows, and give it
+no read-the-rest link — the title is the link.
+
+Entries are newest first. No build step, no front matter, no generator.
+

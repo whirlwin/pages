@@ -476,6 +476,41 @@ main {
   color: var(--ink);
 }
 
+/* The index carries a preview; the entry itself is its own page. */
+.post__more { margin: 0.8rem 0 0; font-size: 0.82rem; }
+.post__more a {
+  color: var(--phosphor);
+  border-bottom: none;
+}
+.post__more a::after { content: " →"; }
+.post__more a:hover { background: var(--phosphor); color: var(--bg); }
+
+/* ── A single entry on its own page ───────────────────────────────── */
+
+.entry { max-width: 80ch; }
+.entry__head {
+  display: grid;
+  gap: 0.45rem;
+  margin-bottom: 1.6rem;
+  padding-bottom: 1.2rem;
+  border-bottom: 1px dotted var(--rule);
+}
+.entry__title {
+  margin: 0;
+  font-size: clamp(1.4rem, 3.4vw, 2rem);
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--phosphor);
+}
+.entry__title::before { content: "# "; color: var(--ink-faint); }
+/* Longer than a preview, so it gets a touch more size to read at. */
+.entry__body { font-size: 0.98rem; }
+.entry__back { margin: 2.6rem 0 0; font-size: 0.85rem; }
+.entry__back a { border-bottom: none; }
+.entry__back a::before { content: "← "; color: var(--ink-faint); }
+.entry__back a:hover { background: var(--phosphor); color: var(--bg); }
+.entry__back a:hover::before { color: var(--bg); }
+
 /* An external entry's title leaves the site, so it takes an outbound arrow
    in place of the permalink hash, and names its kind and host. */
 .post--external .post__title a::before { content: "↗ "; }

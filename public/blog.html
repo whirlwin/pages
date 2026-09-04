@@ -15,7 +15,7 @@
       rel="stylesheet"
     />
 
-    <link rel="stylesheet" href="/styles.css?v=3" />
+    <link rel="stylesheet" href="/styles.css?v=4" />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2308100b'/%3E%3Ctext x='50%25' y='62%25' text-anchor='middle' font-family='monospace' font-weight='700' font-size='22' fill='%2382f4a3'%3E~%3C/text%3E%3C/svg%3E" />
   </head>
 
@@ -59,33 +59,33 @@
         </h1>
       </section>
 
-      <section id="blog" class="block" aria-labelledby="blog-heading">
-        <header class="block__head">
-          <span class="prompt">$</span>
-          <h2 id="blog-heading"><span class="cmd">tail</span> <span class="arg">-f ./blog</span></h2>
-        </header>
-
+      <section id="blog" class="block">
         <!--
           ── Adding an entry ────────────────────────────────────────────
-          Copy one <article class="post"> block, paste it at the TOP of
-          the list below (newest first), and edit:
-            - id="..."            slug, used for the #permalink
-            - datetime="..."      ISO date, YYYY-MM-DD (machine-readable)
-            - the visible date    written out for humans
-            - the author name
-            - the title and body
-          Nothing else to do — no build step.
+          This page carries previews; an entry of your own lives at
+          public/blog/<slug>.html and is served at /blog/<slug>.
 
-          An entry that lives on someone else's site takes
-          class="post post--external", points its title at the external URL,
-          and adds a .post__kind badge plus a .post__source domain to the
-          meta line. Its date is the date that site shows.
+          Your own writing — two files:
+            1. public/blog/<slug>.html: copy the existing one and edit the
+               <title>, the description meta, the h1, the date and the body
+            2. an <article class="post"> below, newest first, with
+               id="<slug>" and both its title and .post__more pointing at
+               /blog/<slug>. Keep the body to a sentence or two.
+
+          Published elsewhere — one file: an
+          <article class="post post--external"> below, title pointing at the
+          external URL, plus a .post__kind badge and .post__source domain.
+          Date it with the date that site shows. No read-the-rest link, the
+          title is the link.
+
+          Touch public/styles.css and you must bump the ?v= on the
+          stylesheet in every page, this one and the entry pages included.
         -->
         <div class="posts">
 
           <article class="post" id="cloudflare-cost-caps">
             <header class="post__head">
-              <h3 class="post__title"><a href="#cloudflare-cost-caps">Controlling Cloudflare costs with caps</a></h3>
+              <h3 class="post__title"><a href="/blog/cloudflare-cost-caps">Controlling Cloudflare costs with caps</a></h3>
               <p class="post__meta">
                 <time class="post__date" datetime="2026-09-04">2026-09-04</time>
                 <span class="post__sep" aria-hidden="true">·</span>
@@ -94,88 +94,12 @@
             </header>
             <div class="post__body">
               <p>
-                Usage-based billing has no brakes. A Worker scales to whatever shows
-                up, which is the whole point — right up until what shows up is a
-                Worker fetching a URL that routes back to itself, or a scraper that
-                found your endpoint, or <code>* * * * *</code> where you meant
-                <code>0 * * * *</code>. Nothing errors. Nothing crashes. The request
-                count just climbs, and the first thing that tells you is the invoice.
-              </p>
-              <p>
-                Cloudflare has closed part of this gap. Since April there is a
-                <strong>Billable Usage</strong> dashboard under Manage Account →
-                Billing, fed by the same system that generates the invoice, so the
-                daily numbers actually match the bill. Alongside it are
-                <strong>budget alerts</strong>: set a dollar threshold and you get an
-                email when your projected monthly spend crosses it, calculated daily,
-                once per billing cycle, on pay-as-you-go accounts. Both are genuinely
-                useful and you should turn them on.
-              </p>
-              <p>
-                Neither one stops anything. That is the distinction worth being clear
-                about: an alert is a smoke detector, and what you want at 3am is a
-                sprinkler. The one native control that does bound something is the
-                per-invocation CPU limit — <code>limits.cpu_ms</code> in your Wrangler
-                config, or Settings → CPU Limits in the dashboard. The docs recommend
-                it against exactly this scenario, and it works, but it caps the CPU one
-                request may burn. It has nothing to say about ten million of them.
-              </p>
-              <p>
-                So what does a cap have to do? Watch the month's spend, and when it
-                crosses your number, take away the ways traffic reaches your code.
-                Concretely that means disabling the <code>workers.dev</code> subdomain,
-                detaching custom domains, removing routes in every zone, and clearing
-                cron triggers — and writing each of those down before you remove it, so
-                that resuming restores what was actually there rather than your best
-                recollection of it. The script itself is never touched.
-              </p>
-              <p>
-                The uncomfortable part is measurement. There is no public endpoint for
-                <em>what do I owe right now</em>, so a cap has to estimate: this
-                month's requests and CPU time out of usage analytics, priced with the
-                published Workers rates. That is close, but it is not your invoice, and
-                a tool that pretends otherwise is lying to you. It also means a
-                Workers-only cap says nothing about R2, D1 or KV, and that pulling the
-                public entry points does not stop a service binding from another
-                Worker, a Durable Object alarm, or a queue consumer.
-              </p>
-              <p>
-                A cap built on an estimate is a safety net, not a guarantee — and a
-                safety net is still worth having, as long as it is honest about where
-                its edges are. That is the trade I decided I wanted, so I built
-                <a href="https://controlflare.whirlwin.io/" rel="noopener">Controlflare</a>
-                to make it: a monthly cap per account, checked every five minutes,
-                pausing Workers when the estimate crosses it and never resuming them on
-                its own. Full disclosure, it is mine. It is free while it is in beta,
-                and if handing an API token to someone else's dashboard is not your
-                idea of cost control, the same Worker deploys into your own account
-                instead.
+                Usage-based billing has no brakes. Cloudflare will now tell you what you are
+                spending and email you when a projection crosses your threshold — but
+                none of it stops a month in progress, and that is a different job.
               </p>
             </div>
-          </article>
-
-          <article class="post" id="hello-world">
-            <header class="post__head">
-              <h3 class="post__title"><a href="#hello-world">Hello, world</a></h3>
-              <p class="post__meta">
-                <time class="post__date" datetime="2026-09-03">2026-09-03</time>
-                <span class="post__sep" aria-hidden="true">·</span>
-                <span class="post__author">Øyvind Ødegård</span>
-              </p>
-            </header>
-            <div class="post__body">
-              <p>
-                This is the blog. Hand-rolled HTML like the rest of the site — no
-                build step, no generator, no database. An entry is a
-                <code>&lt;article class="post"&gt;</code> block in
-                <code>public/blog.html</code>: copy the one above, put the new one
-                on top, edit the date, author and text, push.
-              </p>
-              <p>
-                Expect notes on AI and platform engineering, the odd side project,
-                and whatever turns out to be harder than it looked.
-              </p>
-            </div>
+            <p class="post__more"><a href="/blog/cloudflare-cost-caps">read the rest</a></p>
           </article>
 
           <article class="post post--external" id="jib-container-images">
