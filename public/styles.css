@@ -155,7 +155,10 @@ code, kbd, pre { font-family: var(--mono); }
 }
 
 @media (max-width: 640px) {
+  /* The logo takes the left slot from here down; the clock and the terminal
+     path are decorative, and the nav needs the width more than they do. */
   .statusbar__right { display: none; }
+  .statusbar__path { display: none; }
 }
 
 /* ── Layout primitives ────────────────────────────────────────────── */
@@ -728,7 +731,6 @@ main {
 
 @media (max-width: 480px) {
   .statusbar__nav { gap: 0.85rem; font-size: 0.78rem; }
-  .statusbar__path { display: none; }
   .block__head { flex-direction: row; align-items: center; }
   .block__meta { width: 100%; margin-left: 0; }
 }
