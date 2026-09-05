@@ -223,7 +223,7 @@ main {
   display: grid;
   grid-template-columns: 1fr;
   gap: 2rem;
-  align-items: center;
+  align-items: start;
 }
 @media (min-width: 960px) {
   .hero { grid-template-columns: minmax(0, 1fr) 420px; gap: 3rem; }
@@ -249,30 +249,6 @@ main {
 @media (max-width: 600px) {
   .hero__game { justify-self: start; }
 }
-.hero__headline {
-  max-width: 62ch;
-  margin: 0;
-  font-weight: 400;
-  font-size: clamp(1.1rem, 2vw, 1.4rem);
-  line-height: 1.4;
-  color: var(--ink);
-  letter-spacing: 0.005em;
-}
-.hero__headline a {
-  color: var(--phosphor);
-  border-bottom: 1px dotted var(--phosphor-2);
-  white-space: nowrap;
-}
-.hero__headline a:hover {
-  color: var(--bg);
-  background: var(--phosphor);
-  border-bottom-color: var(--phosphor);
-}
-.hero__headline-spark {
-  margin-right: 0.35em;
-  filter: drop-shadow(0 0 8px rgba(255, 220, 130, 0.45));
-}
-
 /* ── whoami facts ─────────────────────────────────────────────────── */
 
 .facts {
@@ -670,7 +646,7 @@ main {
 /* ── Hero entry animation ─────────────────────────────────────────── */
 
 @media (prefers-reduced-motion: no-preference) {
-  .hero__headline, .masthead__title {
+  .hero__text, .masthead__title {
     opacity: 0;
     transform: translateY(8px);
     animation: rise 0.6s ease forwards 0.05s;

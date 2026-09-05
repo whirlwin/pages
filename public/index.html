@@ -15,7 +15,7 @@
       rel="stylesheet"
     />
 
-    <link rel="stylesheet" href="/styles.css?v=5" />
+    <link rel="stylesheet" href="/styles.css?v=6" />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2308100b'/%3E%3Ctext x='50%25' y='62%25' text-anchor='middle' font-family='monospace' font-weight='700' font-size='22' fill='%2382f4a3'%3E~%3C/text%3E%3C/svg%3E" />
   </head>
 
@@ -45,14 +45,52 @@
     </header>
 
     <main>
+      <h1 class="visually-hidden">whirlwin.io — Øyvind Ødegård</h1>
+
       <!-- HERO -->
-      <section class="hero" aria-labelledby="hero-heading">
+      <section class="hero" aria-labelledby="latest-heading">
         <div class="hero__text">
-          <h1 id="hero-heading" class="hero__headline">
-            <span class="hero__headline-spark" aria-hidden="true">✨</span>
-            AI and Platform Engineering at
-            <a href="https://catalystone.com" rel="noopener">CatalystOne</a>
-          </h1>
+          <header class="block__head block__head--plain">
+            <h2 id="latest-heading">Latest writing</h2>
+            <span class="block__meta"><a href="/blog">all entries</a></span>
+          </header>
+
+          <div class="posts posts--compact">
+
+            <article class="post">
+              <header class="post__head">
+                <h3 class="post__title"><a href="/blog/cloudflare-cost-caps">Controlling Cloudflare costs with caps</a></h3>
+                <p class="post__meta">
+                  <time class="post__date" datetime="2026-09-04">2026-09-04</time>
+                </p>
+              </header>
+            </article>
+
+            <article class="post post--external">
+              <header class="post__head">
+                <h3 class="post__title"><a href="https://vimeo.com/677812854?fl=pl&amp;fe=cm" rel="noopener">Building Java Container Images Using Jib</a></h3>
+                <p class="post__meta">
+                  <time class="post__date" datetime="2022-02-15">2022-02-15</time>
+                  <span class="post__sep" aria-hidden="true">·</span>
+                  <span class="post__kind post__kind--talk">talk</span>
+                  <span class="post__source">vimeo.com</span>
+                </p>
+              </header>
+            </article>
+
+            <article class="post post--external">
+              <header class="post__head">
+                <h3 class="post__title"><a href="https://faun.pub/4-golden-rules-for-speedy-deployments-telenor-on-openshift-73b32ad847bb" rel="noopener">4 Golden Rules For Speedy Deployments: Telenor On OpenShift</a></h3>
+                <p class="post__meta">
+                  <time class="post__date" datetime="2019-12-01">2019-12-01</time>
+                  <span class="post__sep" aria-hidden="true">·</span>
+                  <span class="post__kind">article</span>
+                  <span class="post__source">faun.pub</span>
+                </p>
+              </header>
+            </article>
+
+          </div>
         </div>
 
         <div class="hero__game" aria-hidden="true">
@@ -273,51 +311,6 @@
           </li>
 
         </ol>
-      </section>
-
-      <!-- WRITING -->
-      <section id="latest" class="block" aria-labelledby="latest-heading">
-        <header class="block__head block__head--plain">
-          <h2 id="latest-heading">Latest writing</h2>
-          <span class="block__meta"><a href="/blog">all entries</a></span>
-        </header>
-
-        <div class="posts posts--compact">
-
-          <article class="post">
-            <header class="post__head">
-              <h3 class="post__title"><a href="/blog/cloudflare-cost-caps">Controlling Cloudflare costs with caps</a></h3>
-              <p class="post__meta">
-                <time class="post__date" datetime="2026-09-04">2026-09-04</time>
-              </p>
-            </header>
-          </article>
-
-          <article class="post post--external">
-            <header class="post__head">
-              <h3 class="post__title"><a href="https://vimeo.com/677812854?fl=pl&amp;fe=cm" rel="noopener">Building Java Container Images Using Jib</a></h3>
-              <p class="post__meta">
-                <time class="post__date" datetime="2022-02-15">2022-02-15</time>
-                <span class="post__sep" aria-hidden="true">·</span>
-                <span class="post__kind post__kind--talk">talk</span>
-                <span class="post__source">vimeo.com</span>
-              </p>
-            </header>
-          </article>
-
-          <article class="post post--external">
-            <header class="post__head">
-              <h3 class="post__title"><a href="https://faun.pub/4-golden-rules-for-speedy-deployments-telenor-on-openshift-73b32ad847bb" rel="noopener">4 Golden Rules For Speedy Deployments: Telenor On OpenShift</a></h3>
-              <p class="post__meta">
-                <time class="post__date" datetime="2019-12-01">2019-12-01</time>
-                <span class="post__sep" aria-hidden="true">·</span>
-                <span class="post__kind">article</span>
-                <span class="post__source">faun.pub</span>
-              </p>
-            </header>
-          </article>
-
-        </div>
       </section>
 
       <!-- ELSEWHERE -->

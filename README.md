@@ -76,7 +76,7 @@ no read-the-rest link — the title is the link.
 
 Entries are newest first. No build step, no front matter, no generator.
 
-The front page carries the newest three as title-and-date teasers in its
-`#latest` section. That list is hand-maintained, so add a new entry there
-too and drop the oldest of the three.
+The front page carries the newest three as title-and-date teasers, in the
+hero beside the animation. That list is hand-maintained, so add a new entry
+there too and drop the oldest of the three.
 
