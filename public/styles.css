@@ -174,11 +174,25 @@ main {
 }
 .block__head .cmd { color: var(--phosphor); }
 .block__head .arg { color: var(--amber); }
+/* A plain section header, for sections that read better without the shell
+   prompt dressing in front of them. */
+.block__head--plain {
+  margin-bottom: 1.6rem;
+  padding-bottom: 0.7rem;
+  border-bottom: 1px solid var(--rule);
+}
+.block__head--plain h2 {
+  font: 700 clamp(1.25rem, 2.4vw, 1.6rem)/1.25 var(--mono);
+  color: var(--ink);
+}
 .block__meta {
   margin-left: auto;
   font-size: 0.8125rem;
   color: var(--ink-faint);
 }
+.block__meta a { color: var(--phosphor); border-bottom: none; }
+.block__meta a::after { content: " →"; }
+.block__meta a:hover { background: var(--phosphor); color: var(--bg); }
 
 .block__body--prose {
   max-width: var(--maxw);
@@ -475,6 +489,11 @@ main {
   font-size: 0.86em;
   color: var(--ink);
 }
+
+/* Teasers on the front page: title and date, no preview text — the blog
+   itself carries those. */
+.posts--compact .post { padding: 0.85rem 0; }
+.posts--compact .post__head { margin-bottom: 0; }
 
 /* The index carries a preview; the entry itself is its own page. */
 .post__more { margin: 0.8rem 0 0; font-size: 0.82rem; }
