@@ -1,0 +1,3 @@
+# /blog became /writings. These were live, so keep them working.
+/blog          /writings         301
+/blog/*        /writings/:splat  301

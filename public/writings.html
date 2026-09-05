@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>whirlwin.io — blog</title>
+    <title>whirlwin.io — writings</title>
     <meta name="description" content="Notes from Øyvind Ødegård on AI, platform engineering, and whatever else is being tinkered with." />
     <meta name="color-scheme" content="dark" />
     <meta name="theme-color" content="#08100b" />
@@ -15,7 +15,7 @@
       rel="stylesheet"
     />
 
-    <link rel="stylesheet" href="/styles.css?v=5" />
+    <link rel="stylesheet" href="/styles.css?v=7" />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2308100b'/%3E%3Ctext x='50%25' y='62%25' text-anchor='middle' font-family='monospace' font-weight='700' font-size='22' fill='%2382f4a3'%3E~%3C/text%3E%3C/svg%3E" />
   </head>
 
@@ -31,9 +31,8 @@
         </a>
       </div>
       <nav class="statusbar__nav" aria-label="primary">
-        <a href="/#apps">apps</a>
-        <a href="/blog" aria-current="page">blog</a>
-        <a href="/blog">writing</a>
+        <a href="/projects">projects</a>
+        <a href="/writings">writings</a>
         <a href="/#elsewhere">elsewhere</a>
         <a href="/contact">contact</a>
       </nav>
@@ -59,18 +58,18 @@
         </h1>
       </section>
 
-      <section id="blog" class="block">
+      <section id="writings" class="block">
         <!--
           ── Adding an entry ────────────────────────────────────────────
           This page carries previews; an entry of your own lives at
-          public/blog/<slug>.html and is served at /blog/<slug>.
+          public/writings/<slug>.html and is served at /writings/<slug>.
 
           Your own writing — two files:
-            1. public/blog/<slug>.html: copy the existing one and edit the
+            1. public/writings/<slug>.html: copy the existing one and edit the
                <title>, the description meta, the h1, the date and the body
             2. an <article class="post"> below, newest first, with
                id="<slug>" and both its title and .post__more pointing at
-               /blog/<slug>. Keep the body to a sentence or two.
+               /writings/<slug>. Keep the body to a sentence or two.
 
           Published elsewhere — one file: an
           <article class="post post--external"> below, title pointing at the
@@ -85,7 +84,7 @@
 
           <article class="post" id="cloudflare-cost-caps">
             <header class="post__head">
-              <h3 class="post__title"><a href="/blog/cloudflare-cost-caps">Controlling Cloudflare costs with caps</a></h3>
+              <h3 class="post__title"><a href="/writings/cloudflare-cost-caps">Controlling Cloudflare costs with caps</a></h3>
               <p class="post__meta">
                 <time class="post__date" datetime="2026-09-04">2026-09-04</time>
                 <span class="post__sep" aria-hidden="true">·</span>
@@ -99,7 +98,7 @@
                 none of it stops a month in progress, and that is a different job.
               </p>
             </div>
-            <p class="post__more"><a href="/blog/cloudflare-cost-caps">read the rest</a></p>
+            <p class="post__more"><a href="/writings/cloudflare-cost-caps">read the rest</a></p>
           </article>
 
           <article class="post post--external" id="jib-container-images">

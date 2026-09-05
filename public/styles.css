@@ -160,6 +160,13 @@ main {
   padding-top: clamp(1.5rem, 4vw, 2.25rem);
   border-top: 1px dashed var(--rule);
 }
+/* The rule separates one block from the last; a block that opens the page
+   has nothing above it to be separated from. */
+main > .block:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
 
 .block__head {
   display: flex; align-items: baseline; gap: 0.6rem;
@@ -181,10 +188,24 @@ main {
   padding-bottom: 0.7rem;
   border-bottom: 1px solid var(--rule);
 }
+.block__head--plain h1,
 .block__head--plain h2 {
   font: 700 clamp(1.25rem, 2.4vw, 1.6rem)/1.25 var(--mono);
   color: var(--ink);
 }
+/* On the front page the heading is the way through to the full list, so it
+   carries the arrow rather than a separate "see all" link beside it. */
+.block__head--plain h2 a {
+  color: inherit;
+  border-bottom: none;
+}
+.block__head--plain h2 a::after {
+  content: " →";
+  color: var(--phosphor);
+  font-size: 0.8em;
+  vertical-align: 0.06em;
+}
+.block__head--plain h2 a:hover { background: transparent; color: var(--phosphor); }
 .block__meta {
   margin-left: auto;
   font-size: 0.8125rem;
