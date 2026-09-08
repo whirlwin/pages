@@ -57,14 +57,16 @@
   const pillarW = 22;
   const pillarH = H - platformY - platformH / 2;
 
-  // ── Boxes (stacked on the platform, Cloud Native at the bottom) ──
+  // ── Boxes (stacked on the platform, Linux at the bottom) ──
+  // Array order is stack order: index 0 is delivered first and ends up
+  // lowest, the last entry lands on top.
   const items = [
-    { label: "Cloud Native", icon: "☁",  color: "#5b9dff" }, // bottom
+    { label: "Linux",        icon: "⬡",  color: "#ff7a92" }, // bottom
+    { label: "Cloud Native", icon: "☁",  color: "#5b9dff" },
     { label: "Agentic AI",   icon: "✦",  color: "#b48cff" },
-    { label: "Compliance",   icon: "✓",  color: "#82f4a3" },
-    { label: "FinOps",       icon: "$",  color: "#ffb454" },
-    { label: "Sovereignty",  icon: "⬡",  color: "#ff7a92" },
-    { label: "Management",   icon: "▤",  color: "#7ee0d1" }, // top
+    { label: "Security",     icon: "✓",  color: "#82f4a3" },
+    { label: "Open Source",  icon: "$",  color: "#ffb454" },
+    { label: "DevEx",        icon: "▤",  color: "#7ee0d1" }, // top
   ];
 
   const boxW = Math.min(120, Math.max(106, platformW * 0.78));
