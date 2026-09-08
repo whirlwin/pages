@@ -11,7 +11,7 @@ so repo files like this README stay private.
 - `public/writings.html` — the writings index (`/writings`), previews inline
 - `public/writings/<slug>.html` — one entry per file (`/writings/<slug>`)
 - `public/projects.html` — every project (`/projects`)
-- `public/contact.html` — contact and legal identity (`/contact`)
+- `public/contact.html` — contact: email and the profiles elsewhere (`/contact`)
 - `public/styles.css` — all the styling
 - `public/script.js` — tiny enhancements (typing animation, clock, easter egg)
 - `public/game.js` — the easter-egg game

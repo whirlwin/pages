@@ -2,5 +2,7 @@ this is a list of todos for agents to execute, when a todo finished, mark it as 
 
 # TODOs
 [x] Move website (whirlwin.io) to CF pages
-[x] Create a Contact page with my DUNS number 348472132, Norwegian organization number: 937864965 and public email info@whirlwin.io
+[x] Create a Contact page (/contact) — now the public email plus the profiles
+    elsewhere (codeberg, github, x, hacker news). The DUNS and Norwegian
+    organization number it originally carried were removed later.
 [x] Create a blog page (/blog) where entries can be added, each with date and author
