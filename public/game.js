@@ -244,9 +244,123 @@
         // Gentle current that varies per box so they drift apart.
         const drift = 0.0000018 * Math.sin(t * 0.35 + b.spawnIndex * 1.2);
         Body.applyForce(b, b.position, { x: drift * b.mass, y: 0 });
+
+        // First contact with the surface throws a splash. Boxes sliding
+        // off the platform is the designed ending, so it deserves a beat.
+        if (!b.wasWet) {
+          b.wasWet = true;
+          spawnSplash(b.position.x, surface, Math.min(1.4, Math.abs(b.velocity.y) / 2.6));
+          // Air dragged under on impact escapes over the next second or so.
+          b.bubbleUntil = t + 1.5;
+        }
+      } else if (b.position.y + boxH / 2 < surface - 6) {
+        b.wasWet = false; // dragged back out — let it splash again on return
       }
     });
   });
+
+  // ── Ambience: splash droplets, ripple rings, bubbles ──────────────
+  // Every array is hard-capped. This redraws 60 times a second on a
+  // canvas barely 420px wide, so the budget buys a few good particles
+  // rather than a cloud of cheap ones.
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const MAX_SPLASH = 70, MAX_RIPPLES = 9, MAX_BUBBLES = 44;
+  const splashes = [];
+  const ripples = [];
+  const bubbles = [];
+
+  function spawnSplash(x, y, power) {
+    const n = Math.min(15, Math.round(5 + power * 9));
+    for (let i = 0; i < n && splashes.length < MAX_SPLASH; i++) {
+      const a = -Math.PI / 2 + (Math.random() - 0.5) * 2.0;
+      const sp = 20 + Math.random() * 44 * (0.5 + power);
+      splashes.push({
+        x, y,
+        vx: Math.cos(a) * sp,
+        vy: Math.sin(a) * sp,
+        ttl: 0.45 + Math.random() * 0.5,
+        life: 0,
+        r: 0.7 + Math.random() * 1.2,
+      });
+    }
+    if (ripples.length < MAX_RIPPLES) ripples.push({ x, r: 3, ttl: 1.6, life: 0 });
+  }
+
+  function updateAmbience(t, dt) {
+    for (let i = splashes.length - 1; i >= 0; i--) {
+      const d = splashes[i];
+      d.life += dt;
+      d.x += d.vx * dt;
+      d.y += d.vy * dt;
+      d.vy += 150 * dt; // droplets arc back down
+      if (d.life > d.ttl || d.y > waterY + 3) splashes.splice(i, 1);
+    }
+    for (let i = ripples.length - 1; i >= 0; i--) {
+      const r = ripples[i];
+      r.life += dt;
+      r.r += 25 * dt;
+      if (r.life > r.ttl) ripples.splice(i, 1);
+    }
+    // Bubbles come from air entrained on impact, and from anything held
+    // properly under the surface. Buoyancy means a floating box is never
+    // fully submerged, so the impact window is what you normally see.
+    boxes.forEach((b) => {
+      const entrained = b.bubbleUntil !== undefined && t < b.bubbleUntil;
+      const held = b.position.y - boxH / 2 > waterY;
+      if (!entrained && !held) return;
+      if (bubbles.length >= MAX_BUBBLES || Math.random() > dt * 7) return;
+      bubbles.push({
+        x: b.position.x + (Math.random() - 0.5) * boxW * 0.7,
+        y: Math.max(waterY + 1, b.position.y - boxH / 2),
+        r: 0.6 + Math.random() * 1.2,
+        vy: -10 - Math.random() * 13,
+        wob: Math.random() * Math.PI * 2,
+      });
+    });
+    for (let i = bubbles.length - 1; i >= 0; i--) {
+      const b = bubbles[i];
+      b.y += b.vy * dt;
+      b.wob += dt * 3.4;
+      if (b.y < waterY - 1) {
+        // Popping at the surface leaves a tiny ring behind.
+        if (ripples.length < MAX_RIPPLES && Math.random() < 0.3) {
+          ripples.push({ x: b.x, r: 1, ttl: 0.85, life: 0 });
+        }
+        bubbles.splice(i, 1);
+      }
+    }
+  }
+
+  function drawSplashes() {
+    splashes.forEach((d) => {
+      const k = 1 - d.life / d.ttl;
+      ctx.fillStyle = `rgba(180, 220, 255, ${0.55 * k})`;
+      ctx.beginPath();
+      ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  }
+
+  function drawRipples() {
+    ctx.lineWidth = 1;
+    ripples.forEach((r) => {
+      const k = 1 - r.life / r.ttl;
+      ctx.strokeStyle = `rgba(150, 210, 255, ${0.4 * k})`;
+      ctx.beginPath();
+      ctx.ellipse(r.x, waterY, r.r, r.r * 0.3, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    });
+  }
+
+  function drawBubbles() {
+    ctx.strokeStyle = "rgba(190, 225, 255, 0.4)";
+    ctx.lineWidth = 0.8;
+    bubbles.forEach((b) => {
+      ctx.beginPath();
+      ctx.arc(b.x + Math.sin(b.wob) * 1.4, b.y, b.r, 0, Math.PI * 2);
+      ctx.stroke();
+    });
+  }
 
   // Press "r" to restart the delivery from the beginning.
   function reset() {
@@ -254,6 +368,9 @@
       const b = boxes.pop();
       Composite.remove(world, b);
     }
+    splashes.length = 0;
+    ripples.length = 0;
+    bubbles.length = 0;
     heli.state = "idle";
     heli.stateT = 0;
     heli.carrying = null;
@@ -276,27 +393,146 @@
     ctx.closePath();
   }
 
+  // The platform stands on a braced steel truss rather than a solid
+  // block — it splays slightly towards the seabed, so the whole thing
+  // reads as a rig instead of a floating slab.
   function drawPillar() {
-    const x = platform.position.x - pillarW / 2;
-    const y = platformY + platformH / 2;
-    ctx.fillStyle = "#0c1812";
-    ctx.fillRect(x, y, pillarW, pillarH);
-    ctx.strokeStyle = "#1c2c23";
+    const cx = platform.position.x;
+    const top = platformY + platformH / 2;
+    const half = pillarW / 2;
+    const splay = 4;
+
+    // Legs.
+    ctx.strokeStyle = "#24382c";
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.moveTo(cx - half, top); ctx.lineTo(cx - half - splay, top + pillarH);
+    ctx.moveTo(cx + half, top); ctx.lineTo(cx + half + splay, top + pillarH);
+    ctx.stroke();
+
+    // Cross bracing between the legs.
+    ctx.strokeStyle = "rgba(58, 208, 122, 0.2)";
     ctx.lineWidth = 1;
-    ctx.strokeRect(x + 0.5, y + 0.5, pillarW - 1, pillarH - 1);
+    const rungs = Math.max(3, Math.round(pillarH / 15));
+    ctx.beginPath();
+    for (let i = 0; i < rungs; i++) {
+      const y0 = top + (pillarH * i) / rungs;
+      const y1 = top + (pillarH * (i + 1)) / rungs;
+      const s0 = half + (splay * i) / rungs;
+      const s1 = half + (splay * (i + 1)) / rungs;
+      ctx.moveTo(cx - s0, y0); ctx.lineTo(cx + s1, y1);
+      ctx.moveTo(cx + s0, y0); ctx.lineTo(cx - s1, y1);
+      ctx.moveTo(cx - s1, y1); ctx.lineTo(cx + s1, y1);
+    }
+    ctx.stroke();
+
+    // Rust/algae stain where the legs meet the water.
+    const stainW = half + (splay * (waterY - top)) / pillarH;
+    ctx.strokeStyle = "rgba(130, 200, 255, 0.3)";
+    ctx.lineWidth = 2.4;
+    ctx.beginPath();
+    ctx.moveTo(cx - stainW - 1, waterY); ctx.lineTo(cx - stainW + 1.5, waterY + 5);
+    ctx.moveTo(cx + stainW + 1, waterY); ctx.lineTo(cx + stainW - 1.5, waterY + 5);
+    ctx.stroke();
   }
 
-  function drawWater(t) {
-    // Body of water
+  // The depth gradient and the backdrop never change between resizes,
+  // so they are built once instead of per frame. Both are invalidated
+  // by setting them back to null in the resize handler.
+  let depthGrad = null;
+  let backdrop = null;
+
+  function buildDepthGradient() {
+    const g = ctx.createLinearGradient(0, waterY, 0, H);
+    g.addColorStop(0, "rgba(91, 157, 255, 0.06)");
+    g.addColorStop(1, "rgba(58, 90, 160, 0.22)");
+    depthGrad = g;
+  }
+
+  // Stars and the horizon glow are static, so they are baked into an
+  // offscreen canvas and blitted in one draw call.
+  function buildBackdrop() {
+    const c = document.createElement("canvas");
+    c.width = Math.round(W * dpr);
+    c.height = Math.round(H * dpr);
+    const b = c.getContext("2d");
+    b.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    // Phosphor haze lifting off the horizon.
+    const band = 46;
+    const glow = b.createLinearGradient(0, waterY - band, 0, waterY);
+    glow.addColorStop(0, "rgba(58, 208, 122, 0)");
+    glow.addColorStop(1, "rgba(58, 208, 122, 0.08)");
+    b.fillStyle = glow;
+    b.fillRect(0, waterY - band, W, band);
+    b.fillStyle = "rgba(130, 244, 163, 0.14)";
+    b.fillRect(0, waterY - 0.5, W, 0.5);
+
+    // Stars — density scales with width so a narrow canvas isn't dense.
+    const ceiling = Math.max(10, waterY - 56);
+    const count = Math.round(W * 0.14);
+    for (let i = 0; i < count; i++) {
+      b.fillStyle = `rgba(215, 234, 217, ${0.05 + Math.random() * 0.2})`;
+      b.fillRect(Math.random() * W, Math.random() * ceiling, 1, 1);
+    }
+    backdrop = c;
+  }
+
+  function drawBackdrop() {
+    if (!backdrop) buildBackdrop();
+    ctx.drawImage(backdrop, 0, 0, W, H);
+  }
+
+  // Sunlight fanning down through the water.
+  function drawGodRays(t) {
+    if (W < 340) return; // too tight to read on a narrow canvas
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, waterY, W, H - waterY);
+    ctx.clip();
+    ctx.fillStyle = "rgba(130, 200, 255, 0.035)";
+    for (let i = 0; i < 3; i++) {
+      const cx = W * (0.24 + i * 0.26) + Math.sin(t * 0.12 + i * 1.7) * 11;
+      const w = 15 + i * 5;
+      ctx.beginPath();
+      ctx.moveTo(cx - w / 2, waterY);
+      ctx.lineTo(cx + w / 2, waterY);
+      ctx.lineTo(cx + w * 1.6, H);
+      ctx.lineTo(cx - w * 0.5, H);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // Everything above the water line, mirrored into it. Clipped to the
+  // water rect and drawn faint, so it reads as reflection not clutter.
+  function drawReflections(t) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, waterY, W, H - waterY);
+    ctx.clip();
+    ctx.globalAlpha = 0.17;
+    ctx.translate(Math.sin(t * 0.8) * 0.9, waterY * 2);
+    ctx.scale(1, -1);
+    drawPlatformSlab();
+    boxes.forEach((b) => {
+      if (b.position.y + boxH / 2 > waterY) return; // already floating
+      drawBoxShape(b.position.x, b.position.y, b.angle, b.gameData, false);
+    });
+    if (heli.state !== "gone") drawHelicopterShape(t);
+    ctx.restore();
+  }
+
+  function drawWaterBody() {
     ctx.fillStyle = "rgba(91, 157, 255, 0.14)";
     ctx.fillRect(0, waterY, W, H - waterY);
-    // Deeper tint at the bottom
-    const grad = ctx.createLinearGradient(0, waterY, 0, H);
-    grad.addColorStop(0, "rgba(91, 157, 255, 0.06)");
-    grad.addColorStop(1, "rgba(58, 90, 160, 0.22)");
-    ctx.fillStyle = grad;
+    if (!depthGrad) buildDepthGradient();
+    ctx.fillStyle = depthGrad;
     ctx.fillRect(0, waterY, W, H - waterY);
+  }
 
+  function drawWaterSurface(t) {
     // Animated surface wave
     ctx.strokeStyle = "rgba(130, 200, 255, 0.55)";
     ctx.lineWidth = 1;
@@ -323,9 +559,31 @@
       else ctx.lineTo(x, y);
     }
     ctx.stroke();
+
+    // A third, slower swell further down, at a frequency that doesn't
+    // divide into the other two — keeps the water from looking looped.
+    ctx.strokeStyle = "rgba(130, 200, 255, 0.1)";
+    ctx.beginPath();
+    for (let x = 0; x <= W; x += 4) {
+      const y = waterY + 13 + Math.sin(x * 0.027 + t * 0.55) * 1.6;
+      if (x === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    // Glints riding the crests.
+    ctx.fillStyle = "rgba(200, 232, 255, 0.5)";
+    const glints = Math.round(W / 90);
+    for (let i = 0; i < glints; i++) {
+      const gx = ((t * 9 + i * 137) % (W + 40)) - 20;
+      const gy = waterY + Math.sin(gx * 0.06 + t * 1.4) * 1.6;
+      ctx.fillRect(gx, gy - 0.5, 3, 1);
+    }
   }
 
-  function drawPlatform() {
+  // Just the deck slab. Split out so the reflection pass can reuse it
+  // without dragging the label along.
+  function drawPlatformSlab() {
     ctx.save();
     ctx.translate(platform.position.x, platform.position.y);
     ctx.rotate(platform.angle);
@@ -342,6 +600,35 @@
       ctx.lineTo(x + 4, platformH / 2 - 3);
       ctx.stroke();
     }
+    // Lit deck edge, so boxes look like they land on something solid.
+    ctx.strokeStyle = "rgba(130, 244, 163, 0.7)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(-platformW / 2 + 2, -platformH / 2 + 0.5);
+    ctx.lineTo(platformW / 2 - 2, -platformH / 2 + 0.5);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawPlatform(t) {
+    drawPlatformSlab();
+
+    // Hazard beacons on the deck corners. Steady under reduced motion —
+    // a blinking light is exactly what that preference is asking about.
+    const pulse = reduceMotion ? 0.7 : 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(t * 3.4));
+    ctx.save();
+    ctx.translate(platform.position.x, platform.position.y);
+    ctx.rotate(platform.angle);
+    [-1, 1].forEach((side) => {
+      const bx = side * (platformW / 2 - 3);
+      const by = -platformH / 2 - 3;
+      ctx.fillStyle = `rgba(255, 180, 84, ${0.22 * pulse})`;
+      ctx.beginPath();
+      ctx.arc(bx, by, 3.6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = `rgba(255, 200, 130, ${pulse})`;
+      ctx.fillRect(bx - 1, by - 1, 2, 2);
+    });
     ctx.restore();
 
     // platform label
@@ -375,8 +662,34 @@
       ctx.stroke();
     }
 
+    drawDownwash(t);
+    drawHelicopterShape(t);
+  }
+
+  // Rotor wash: short streaks blown down and out from under the disc,
+  // strongest while the heli is descending or holding station.
+  function drawDownwash(t) {
+    const working = heli.state === "lower" || heli.state === "hold" || heli.state === "raise";
+    if (!working) return;
     ctx.save();
-    ctx.translate(x, y);
+    ctx.translate(heli.x, heli.y);
+    ctx.strokeStyle = "rgba(215, 234, 217, 0.14)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let i = -2; i <= 2; i++) {
+      const phase = (t * 2.4 + Math.abs(i) * 0.4) % 1;
+      const sx = i * 8;
+      const y0 = 10 + phase * 14;
+      ctx.moveTo(sx + i * phase * 4, y0);
+      ctx.lineTo(sx + i * phase * 5.5, y0 + 5);
+    }
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawHelicopterShape(t) {
+    ctx.save();
+    ctx.translate(heli.x, heli.y);
 
     // Body
     ctx.fillStyle = "#0c1812";
@@ -443,6 +756,31 @@
     ctx.fillStyle = "#82f4a3";
     ctx.fillRect(-1.5, -10, 3, 3);
 
+    // The disc the blades sweep, as a faint wash rather than a blur.
+    ctx.fillStyle = "rgba(58, 208, 122, 0.05)";
+    ctx.beginPath();
+    ctx.ellipse(0, -9, 24, 2.6, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Navigation lights: red to port, green to starboard, plus a white
+    // strobe on the spine. Held steady when reduced motion is asked for.
+    const nav = reduceMotion ? 0.8 : 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(t * 5));
+    const facingNav = heli.carrying !== null ? heli.dir : -heli.dir;
+    [
+      { dx: -facingNav * 19, col: "255, 122, 146" },
+      { dx: facingNav * 19, col: "130, 244, 163" },
+    ].forEach((l) => {
+      ctx.fillStyle = `rgba(${l.col}, ${0.16 * nav})`;
+      ctx.beginPath();
+      ctx.arc(l.dx, 1, 3.4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = `rgba(${l.col}, ${nav})`;
+      ctx.fillRect(l.dx - 0.9, 0.1, 1.8, 1.8);
+    });
+    const strobe = reduceMotion ? 0.25 : (t * 1.6) % 1 < 0.08 ? 1 : 0.12;
+    ctx.fillStyle = `rgba(233, 245, 236, ${strobe})`;
+    ctx.fillRect(-1, -7.5, 2, 1.6);
+
     ctx.restore();
   }
 
@@ -454,21 +792,49 @@
     drawBoxShape(x, y, 0, { ...item, w: boxW, h: boxH });
   }
 
-  function drawBoxShape(x, y, angle, d) {
+  function drawBoxShape(x, y, angle, d, withLabel = true) {
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(angle);
+
+    // Fake bloom: a wide, faint stroke under the real border. Cheaper
+    // than shadowBlur, and it doesn't smear the 1px phosphor lines.
+    // Composed against the inherited alpha rather than overwriting it,
+    // so the reflection pass stays faint.
+    const baseAlpha = ctx.globalAlpha;
     roundRect(-d.w / 2, -d.h / 2, d.w, d.h, 4);
+    ctx.strokeStyle = d.color;
+    ctx.globalAlpha = baseAlpha * 0.16;
+    ctx.lineWidth = 4;
+    ctx.stroke();
+    ctx.globalAlpha = baseAlpha;
+
     ctx.fillStyle = "#0c1812";
     ctx.fill();
-    ctx.strokeStyle = d.color;
     ctx.lineWidth = 1.5;
     ctx.stroke();
-    ctx.fillStyle = d.color;
-    ctx.font = '500 11px "JetBrains Mono", ui-monospace, monospace';
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(`${d.icon}  ${d.label}`, 0, 0.5);
+
+    // A lit top edge and a shaded bottom one give the crate a little
+    // dimension without committing to isometric geometry.
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "rgba(215, 234, 217, 0.16)";
+    ctx.beginPath();
+    ctx.moveTo(-d.w / 2 + 5, -d.h / 2 + 1.5);
+    ctx.lineTo(d.w / 2 - 5, -d.h / 2 + 1.5);
+    ctx.stroke();
+    ctx.strokeStyle = "rgba(0, 0, 0, 0.35)";
+    ctx.beginPath();
+    ctx.moveTo(-d.w / 2 + 5, d.h / 2 - 1.5);
+    ctx.lineTo(d.w / 2 - 5, d.h / 2 - 1.5);
+    ctx.stroke();
+
+    if (withLabel) {
+      ctx.fillStyle = d.color;
+      ctx.font = '500 11px "JetBrains Mono", ui-monospace, monospace';
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(`${d.icon}  ${d.label}`, 0, 0.5);
+    }
     ctx.restore();
   }
 
@@ -476,8 +842,42 @@
     drawBoxShape(body.position.x, body.position.y, body.angle, body.gameData);
   }
 
+  // A moored marker buoy, riding the same swell as the water surface.
+  function drawBuoy(t) {
+    const bx = Math.max(26, W * 0.14);
+    const by = waterY + Math.sin(bx * 0.06 + t * 1.4) * 1.6 + Math.sin(t * 0.9) * 1.1;
+    const tilt = Math.sin(t * 0.8) * 0.14;
+    ctx.save();
+    ctx.translate(bx, by);
+    ctx.rotate(tilt);
+    // Body.
+    ctx.fillStyle = "#0c1812";
+    ctx.strokeStyle = "rgba(255, 180, 84, 0.75)";
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(-4, 2);
+    ctx.lineTo(-2.6, -6);
+    ctx.lineTo(2.6, -6);
+    ctx.lineTo(4, 2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    // Mast and lamp.
+    ctx.beginPath();
+    ctx.moveTo(0, -6); ctx.lineTo(0, -11);
+    ctx.stroke();
+    const lamp = reduceMotion ? 0.6 : (t * 0.9) % 1 < 0.3 ? 1 : 0.15;
+    ctx.fillStyle = `rgba(255, 180, 84, ${0.2 * lamp})`;
+    ctx.beginPath();
+    ctx.arc(0, -12, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = `rgba(255, 210, 150, ${lamp})`;
+    ctx.fillRect(-1, -13, 2, 2);
+    ctx.restore();
+  }
+
   // ── Fauna: seagulls overhead, fish below the surface ──────────────
-  // They start drifting in after one minute of real time, so the toy
+  // They start drifting in after half a minute of real time, so the toy
   // gains some life if you leave the page open.
   const FAUNA_AFTER = 30; // seconds
   const fauna = {
@@ -593,14 +993,25 @@
 
     const t = engine.timing.timestamp / 1000;
     updateFauna(t, dt);
+    updateAmbience(t, dt);
 
+    // Back to front: sky, then everything the water sits over, then the
+    // water itself, then what floats on or stands above it.
     ctx.clearRect(0, 0, W, H);
+    drawBackdrop();
     drawSeagulls();
     drawPillar();
-    drawWater(t);
+    drawWaterBody();
+    drawReflections(t);
+    drawGodRays(t);
     drawFish();
-    drawPlatform();
+    drawBubbles();
+    drawWaterSurface(t);
+    drawRipples();
+    drawBuoy(t);
+    drawPlatform(t);
     boxes.forEach(drawBox);
+    drawSplashes();
     drawCarriedBox();
     drawHelicopter(t);
     requestAnimationFrame(frame);
@@ -611,6 +1022,9 @@
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
       fit();
+      // Cached layers are sized to the old canvas — force a rebuild.
+      backdrop = null;
+      depthGrad = null;
       Body.setPosition(leftWall,   { x: -wallT / 2,    y: H / 2 });
       Body.setPosition(rightWall,  { x: W + wallT / 2, y: H / 2 });
       Body.setPosition(bottomWall, { x: W / 2,         y: H + wallT / 2 - 2 });

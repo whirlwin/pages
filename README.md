@@ -30,7 +30,7 @@ cd public && python3 -m http.server 8080
 Pages serves HTML with `max-age=0` but CSS, JS and images with
 `max-age=14400`, so a returning visitor can get new HTML against a
 four-hour-old stylesheet. The `<link>`, `<script>` and `<img>` tags therefore
-carry a hand-bumped version query (`/styles.css?v=7`, `/game.js?v=12`,
+carry a hand-bumped version query (`/styles.css?v=7`, `/game.js?v=13`,
 `/whirlwin-lockup.png?v=2`) — **bump it when you change that file**, or the
 change will not reach returning visitors for four hours. This applies to
 images replaced in place, not just CSS and JS. Assets are referenced
