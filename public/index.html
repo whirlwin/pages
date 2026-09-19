@@ -178,10 +178,12 @@
                 </h3>
                 <p class="card__desc">
                   A hard billing cap for Cloudflare. Set a monthly limit; when estimated
-                  Workers spend crosses it, Controlflare pauses the Workers — routes,
-                  custom domains and cron triggers come off, and each one is saved first
-                  so a resume puts it back. Hosted, or self-hosted so the API token never
-                  leaves your own account. Live at
+                  spend crosses it, Controlflare pauses the Workers: the workers.dev URL,
+                  custom domains, routes, cron triggers and the D1, KV, R2 and Durable
+                  Object bindings all come off, and each is saved first so a resume puts
+                  it back. Your Cloudflare API token never leaves your own account,
+                  hosted or self-hosted, because a small open-source agent you deploy
+                  there is the only credential. Live at
                   <a href="https://controlflare.com/" target="_blank" rel="noopener">controlflare.com</a>.
                 </p>
                 <dl class="card__meta">
