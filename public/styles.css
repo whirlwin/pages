@@ -259,7 +259,9 @@ main > .block:first-child {
 .hero__game canvas {
   display: block;
   width: 100%;
-  aspect-ratio: 7 / 6;
+  /* Stacked on narrow screens the sky needs to stay tall enough for the
+     solar system above the helicopter's flight line. */
+  aspect-ratio: 2 / 3;
   background: transparent;
   cursor: grab;
   /* Allow vertical page scroll while still letting Matter receive
@@ -267,6 +269,17 @@ main > .block:first-child {
   touch-action: pan-y;
 }
 .hero__game canvas:active { cursor: grabbing; }
+/* Side by side, the animation runs the full height of the text column
+   (portrait, heading and writings). The canvas is taken out of flow so its
+   own size never feeds back into the row height. */
+@media (min-width: 960px) {
+  .hero__game { align-self: stretch; min-height: 540px; }
+  .hero__game canvas {
+    position: absolute; inset: 0;
+    height: 100%;
+    aspect-ratio: auto;
+  }
+}
 @media (max-width: 600px) {
   .hero__game { justify-self: start; }
 }
@@ -708,8 +721,8 @@ main > .block:first-child {
   text-shadow: none;
   max-width: 46ch;
 }
-/* The front page stacks the portrait over the site name, opening the page
-   ahead of the hero. */
+/* The front page stacks the portrait over the site name at the top of the
+   hero's text column. */
 .masthead--stacked {
   flex-direction: column;
   align-items: flex-start;

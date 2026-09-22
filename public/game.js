@@ -1,6 +1,7 @@
 // Tiny physics toy: a tower of boxes pre-stacked on a swaying platform.
 // Drag them around. No score, no win state — just a fiddle activity.
-(() => {
+// Above the rig, a small solar system turns in the night sky.
+const startStacker = () => {
   const canvas = document.getElementById("stacker");
   if (!canvas || typeof Matter === "undefined") return;
 
@@ -102,7 +103,13 @@
     stateT: 0,
     bobT: 0,
   };
-  const heliCruiseY = 48;
+  // The top of the sky belongs to the solar system; the helicopter cruises
+  // just under it, but never so low it can't clear a full stack.
+  const skyBand = Math.round(Math.min(190, W * 0.45));
+  const heliCruiseY = Math.max(
+    48,
+    Math.min(skyBand + 30, platformY - items.length * boxH - 70),
+  );
   const ropeLen = 28;
 
   function startNextDelivery() {
@@ -894,7 +901,7 @@
       const dir = Math.random() < 0.5 ? 1 : -1;
       fauna.seagulls.push({
         x: dir > 0 ? -20 : W + 20,
-        y: 18 + Math.random() * 36,
+        y: heliCruiseY - 30 + Math.random() * 36,
         vx: dir * (16 + Math.random() * 14),
         wingT: Math.random() * Math.PI,
         dir,
@@ -983,6 +990,122 @@
     });
   }
 
+  // ── Solar system ──────────────────────────────────────────────────
+  // A sun and three planets on tilted orbits, each planet flying the flag
+  // of an agent harness. Planets behind the sun are drawn before it and
+  // shrink a little, so the orbits read as a disc seen from above.
+  function loadLogo(src) {
+    const img = new Image();
+    img.src = src;
+    return img;
+  }
+  const planets = [
+    { color: "#d97757", r: 8,   orbit: 0.42, speed: 0.34, phase: 0.6, logo: loadLogo("/logos/claude-code.svg?v=1") },
+    { color: "#5b9dff", r: 11,  orbit: 0.7,  speed: 0.21, phase: 2.9, logo: loadLogo("/logos/hermes.png?v=1") },
+    { color: "#9a9696", r: 9.5, orbit: 0.97, speed: 0.13, phase: 4.6, logo: loadLogo("/logos/opencode.svg?v=1") },
+  ];
+
+  function solarGeometry() {
+    const cx = W / 2;
+    const cy = skyBand / 2 + 8;
+    // The flag flies to the right of its planet, so keep it inside the frame.
+    const maxRx = W / 2 - 42;
+    // Leave room above the far side of the outer orbit for its flag.
+    const tilt = Math.max(0.2, Math.min(0.38, (skyBand / 2 - 44) / maxRx));
+    return { cx, cy, maxRx, tilt };
+  }
+
+  function drawOrbits(g) {
+    ctx.save();
+    ctx.strokeStyle = "rgba(130, 244, 163, 0.13)";
+    ctx.lineWidth = 1;
+    ctx.setLineDash([2, 4]);
+    planets.forEach((p) => {
+      const rx = g.maxRx * p.orbit;
+      ctx.beginPath();
+      ctx.ellipse(g.cx, g.cy, rx, rx * g.tilt, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    });
+    ctx.restore();
+  }
+
+  function drawSun(g, t) {
+    const pulse = 1 + Math.sin(t * 1.3) * 0.04;
+    const halo = ctx.createRadialGradient(g.cx, g.cy, 0, g.cx, g.cy, 34 * pulse);
+    halo.addColorStop(0, "rgba(255, 210, 122, 0.35)");
+    halo.addColorStop(1, "rgba(255, 180, 84, 0)");
+    ctx.fillStyle = halo;
+    ctx.beginPath();
+    ctx.arc(g.cx, g.cy, 34 * pulse, 0, Math.PI * 2);
+    ctx.fill();
+    const body = ctx.createRadialGradient(g.cx - 3, g.cy - 3, 1, g.cx, g.cy, 12);
+    body.addColorStop(0, "#fff2c4");
+    body.addColorStop(1, "#ffb454");
+    ctx.fillStyle = body;
+    ctx.beginPath();
+    ctx.arc(g.cx, g.cy, 12, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function drawFlag(x, y, logo, t, seed) {
+    const poleH = 20, fw = 30, fh = 22;
+    const top = y - poleH;
+    ctx.strokeStyle = "rgba(215, 234, 217, 0.75)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x, top - 1);
+    ctx.stroke();
+
+    // The cloth ripples along its length; the free edge moves most.
+    const wave = Math.sin(t * 3 + seed) * 1.6;
+    ctx.fillStyle = "#e8efe9";
+    ctx.beginPath();
+    ctx.moveTo(x, top);
+    ctx.quadraticCurveTo(x + fw / 2, top - wave, x + fw, top + wave * 0.6);
+    ctx.lineTo(x + fw, top + fh + wave * 0.6);
+    ctx.quadraticCurveTo(x + fw / 2, top + fh - wave, x, top + fh);
+    ctx.closePath();
+    ctx.fill();
+
+    if (logo.complete && logo.naturalWidth) {
+      const s = 17;
+      ctx.drawImage(logo, x + (fw - s) / 2, top + (fh - s) / 2 + wave * 0.15, s, s);
+    }
+  }
+
+  function drawPlanet(g, p, t) {
+    const a = p.phase + t * p.speed;
+    const rx = g.maxRx * p.orbit;
+    const x = g.cx + Math.cos(a) * rx;
+    const y = g.cy + Math.sin(a) * rx * g.tilt;
+    const depth = 0.84 + 0.16 * Math.sin(a); // far side is smaller
+    const r = p.r * depth;
+
+    const shade = ctx.createRadialGradient(x - r * 0.4, y - r * 0.4, r * 0.1, x, y, r);
+    shade.addColorStop(0, "rgba(255, 255, 255, 0.55)");
+    shade.addColorStop(0.35, p.color);
+    shade.addColorStop(1, "rgba(8, 16, 11, 0.9)");
+    ctx.fillStyle = shade;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+
+    drawFlag(x, y - r + 1, p.logo, t, p.phase);
+  }
+
+  function drawSolarSystem(t) {
+    const g = solarGeometry();
+    drawOrbits(g);
+    const behind = [], front = [];
+    planets.forEach((p) => {
+      (Math.sin(p.phase + t * p.speed) < 0 ? behind : front).push(p);
+    });
+    behind.forEach((p) => drawPlanet(g, p, t));
+    drawSun(g, t);
+    front.forEach((p) => drawPlanet(g, p, t));
+  }
+
   let lastTime = performance.now();
   function frame(now) {
     const dtMs = Math.min(32, now - lastTime || 16.666);
@@ -999,6 +1122,7 @@
     // water itself, then what floats on or stands above it.
     ctx.clearRect(0, 0, W, H);
     drawBackdrop();
+    drawSolarSystem(t);
     drawSeagulls();
     drawPillar();
     drawWaterBody();
@@ -1032,4 +1156,8 @@
   });
 
   requestAnimationFrame(frame);
-})();
+};
+
+// On wide screens the canvas is as tall as the text column beside it, and
+// that column reflows when the web fonts arrive, so measure after they do.
+(document.fonts ? document.fonts.ready : Promise.resolve()).then(startStacker);
