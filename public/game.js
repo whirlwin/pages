@@ -991,8 +991,8 @@ const startStacker = () => {
   }
 
   // ── Solar system ──────────────────────────────────────────────────
-  // A sun and three spaceships on tilted orbits, each flying the flag of
-  // an agent harness. Ships behind the sun are drawn before it and shrink
+  // A sun and three spaceships on tilted orbits, each carrying the logo
+  // of an agent harness in its porthole. Ships behind the sun are drawn before it and shrink
   // a little, so the orbits read as a disc seen from above. A few faint
   // planets hang still in the background.
   function loadLogo(src) {
@@ -1017,10 +1017,10 @@ const startStacker = () => {
   function solarGeometry() {
     const cx = W / 2;
     const cy = skyBand / 2 + 8;
-    // The flag flies to the right of its planet, so keep it inside the frame.
+    // Keep a ship's nose and flame inside the frame at the orbit's ends.
     const maxRx = W / 2 - 42;
-    // Leave room above the far side of the outer orbit for its flag.
-    const tilt = Math.max(0.2, Math.min(0.38, (skyBand / 2 - 44) / maxRx));
+    // Leave room above the far side of the outer orbit for a ship.
+    const tilt = Math.max(0.2, Math.min(0.38, (skyBand / 2 - 30) / maxRx));
     return { cx, cy, maxRx, tilt };
   }
 
@@ -1056,33 +1056,6 @@ const startStacker = () => {
     ctx.fill();
   }
 
-  function drawFlag(x, y, logo, t, seed) {
-    const poleH = 20, fw = 30, fh = 22;
-    const top = y - poleH;
-    ctx.strokeStyle = "rgba(215, 234, 217, 0.75)";
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    ctx.lineTo(x, top - 1);
-    ctx.stroke();
-
-    // The cloth ripples along its length; the free edge moves most.
-    const wave = Math.sin(t * 3 + seed) * 1.6;
-    ctx.fillStyle = "#e8efe9";
-    ctx.beginPath();
-    ctx.moveTo(x, top);
-    ctx.quadraticCurveTo(x + fw / 2, top - wave, x + fw, top + wave * 0.6);
-    ctx.lineTo(x + fw, top + fh + wave * 0.6);
-    ctx.quadraticCurveTo(x + fw / 2, top + fh - wave, x, top + fh);
-    ctx.closePath();
-    ctx.fill();
-
-    if (logo.complete && logo.naturalWidth) {
-      const s = 17;
-      ctx.drawImage(logo, x + (fw - s) / 2, top + (fh - s) / 2 + wave * 0.15, s, s);
-    }
-  }
-
   function drawBackgroundPlanets() {
     ctx.save();
     ctx.globalAlpha = 0.32;
@@ -1114,9 +1087,9 @@ const startStacker = () => {
     const flame = 5 + (Math.sin(t * 24 + seed * 5) + 1) * 2.5;
     ctx.fillStyle = "rgba(255, 180, 84, 0.85)";
     ctx.beginPath();
-    ctx.moveTo(-9, -2.6);
+    ctx.moveTo(-9, -3.4);
     ctx.lineTo(-9 - flame, 0);
-    ctx.lineTo(-9, 2.6);
+    ctx.lineTo(-9, 3.4);
     ctx.fill();
     ctx.fillStyle = "rgba(255, 242, 196, 0.9)";
     ctx.beginPath();
@@ -1128,25 +1101,26 @@ const startStacker = () => {
     // Fins.
     ctx.fillStyle = color;
     ctx.beginPath();
-    ctx.moveTo(-9, -4.2); ctx.lineTo(-13, -8.5); ctx.lineTo(-4, -4.4);
-    ctx.moveTo(-9, 4.2);  ctx.lineTo(-13, 8.5);  ctx.lineTo(-4, 4.4);
+    ctx.moveTo(-9, -5.8); ctx.lineTo(-13.5, -10.5); ctx.lineTo(-3, -6);
+    ctx.moveTo(-9, 5.8);  ctx.lineTo(-13.5, 10.5);  ctx.lineTo(-3, 6);
     ctx.fill();
 
     // Hull.
     ctx.fillStyle = "#d7ead9";
     ctx.beginPath();
-    ctx.moveTo(14, 0);
-    ctx.quadraticCurveTo(8, -5.8, -9, -4.6);
-    ctx.lineTo(-9, 4.6);
-    ctx.quadraticCurveTo(8, 5.8, 14, 0);
+    ctx.moveTo(16, 0);
+    ctx.quadraticCurveTo(10, -8, -9, -6.4);
+    ctx.lineTo(-9, 6.4);
+    ctx.quadraticCurveTo(10, 8, 16, 0);
     ctx.fill();
 
-    // Porthole.
+    // Porthole rim in the ship's colour; the logo goes inside it.
     ctx.fillStyle = color;
     ctx.beginPath();
-    ctx.arc(4, 0, 2.3, 0, Math.PI * 2);
+    ctx.arc(PORT_X, 0, PORT_R + 0.9, 0, Math.PI * 2);
     ctx.fill();
   }
+  const PORT_X = 2.5, PORT_R = 5;
 
   function drawShip(g, p, t) {
     const a = p.phase + t * p.speed;
@@ -1154,7 +1128,7 @@ const startStacker = () => {
     const x = g.cx + Math.cos(a) * rx;
     const y = g.cy + Math.sin(a) * rx * g.tilt;
     const depth = 0.84 + 0.16 * Math.sin(a); // far side is smaller
-    const size = 1.45 * depth;
+    const size = 1.9 * depth;
     // Moving anticlockwise on screen: rightwards along the far side,
     // leftwards along the near side.
     const dir = Math.sin(a) < 0 ? 1 : -1;
@@ -1165,8 +1139,20 @@ const startStacker = () => {
     drawShipBody(p.color, t, p.phase);
     ctx.restore();
 
-    // The flag stays upright on a mast from the top of the hull.
-    drawFlag(x, y - 4.6 * size, p.logo, t, p.phase);
+    // The logo is drawn outside the flip so it never reads mirrored.
+    const px = x + dir * PORT_X * size;
+    const pr = PORT_R * size;
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(px, y, pr, 0, Math.PI * 2);
+    ctx.fillStyle = "#e8efe9";
+    ctx.fill();
+    ctx.clip();
+    if (p.logo.complete && p.logo.naturalWidth) {
+      const s = pr * 1.5;
+      ctx.drawImage(p.logo, px - s / 2, y - s / 2, s, s);
+    }
+    ctx.restore();
   }
 
   function drawSolarSystem(t) {
