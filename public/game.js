@@ -1000,7 +1000,7 @@ const startStacker = () => {
     return img;
   }
   const planets = [
-    { color: "#d97757", r: 8,   orbit: 0.42, speed: 0.34, phase: 0.6, logo: loadLogo("/logos/claude-code.svg?v=1") },
+    { color: "#d97757", r: 8,   orbit: 0.42, speed: 0.34, phase: 0.6, logo: loadLogo("/logos/claude-code.svg?v=2") },
     { color: "#5b9dff", r: 11,  orbit: 0.7,  speed: 0.21, phase: 2.9, logo: loadLogo("/logos/hermes.png?v=1") },
     { color: "#9a9696", r: 9.5, orbit: 0.97, speed: 0.13, phase: 4.6, logo: loadLogo("/logos/opencode.svg?v=1") },
   ];
