@@ -728,6 +728,11 @@ main > .block:first-child {
   align-items: flex-start;
   margin-bottom: clamp(1.5rem, 4vw, 2.5rem);
 }
+/* The name takes the section headings' ink rather than the phosphor green. */
+.masthead--stacked .masthead__title {
+  color: var(--ink);
+  text-shadow: none;
+}
 .masthead__portrait {
   flex: none;
   width: clamp(88px, 18vw, 140px);
