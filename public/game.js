@@ -991,20 +991,45 @@ const startStacker = () => {
   }
 
   // ── Solar system ──────────────────────────────────────────────────
-  // A sun and three spaceships on tilted orbits, each carrying the logo
-  // of an agent harness in its porthole. Ships behind the sun are drawn before it and shrink
-  // a little, so the orbits read as a disc seen from above. A few faint
-  // planets hang still in the background.
+  // A sun, a few faint planets hanging still behind it, and three fighters
+  // roaming the sky, each wearing the logo of an agent harness. The ships
+  // wander from one random waypoint to the next, keep their distance from
+  // each other, and now and then loose a laser bolt.
   function loadLogo(src) {
     const img = new Image();
     img.src = src;
     return img;
   }
+  const SHIP_SCALE = 1.4;
+  const BADGE_R = 8;
   const ships = [
-    { color: "#d97757", orbit: 0.42, speed: 0.34, phase: 0.6, logo: loadLogo("/logos/claude-code.svg?v=2") },
-    { color: "#5b9dff", orbit: 0.7,  speed: 0.21, phase: 2.9, logo: loadLogo("/logos/hermes.png?v=1") },
-    { color: "#9a9696", orbit: 0.97, speed: 0.13, phase: 4.6, logo: loadLogo("/logos/opencode.svg?v=1") },
+    { color: "#d97757", logo: loadLogo("/logos/claude-code.svg?v=2") },
+    { color: "#5b9dff", logo: loadLogo("/logos/hermes.png?v=1") },
+    { color: "#9a9696", logo: loadLogo("/logos/opencode.svg?v=1") },
   ];
+  const bolts = [];
+  const MAX_BOLTS = 12;
+
+  // The ships keep to the sky band, above the helicopter's flight line.
+  function skyBounds() {
+    return { x0: 34, x1: W - 34, y0: 26, y1: skyBand - 14 };
+  }
+  function pickWaypoint(ship) {
+    const b = skyBounds();
+    ship.tx = b.x0 + Math.random() * (b.x1 - b.x0);
+    ship.ty = b.y0 + Math.random() * (b.y1 - b.y0);
+    ship.retarget = 3 + Math.random() * 4;
+  }
+  ships.forEach((ship, i) => {
+    const b = skyBounds();
+    ship.x = b.x0 + ((i + 0.5) / ships.length) * (b.x1 - b.x0);
+    ship.y = b.y0 + Math.random() * (b.y1 - b.y0);
+    ship.heading = Math.random() * Math.PI * 2;
+    ship.speed = 46 + Math.random() * 18;
+    ship.fireIn = 1.5 + Math.random() * 3;
+    pickWaypoint(ship);
+  });
+
   // Background planets, placed as fractions of the canvas width and the
   // sky band so they keep their spots at any size.
   const bgPlanets = [
@@ -1014,28 +1039,60 @@ const startStacker = () => {
     { x: 0.14, y: 0.95, r: 6.5, color: "#ffb454" },
   ];
 
-  function solarGeometry() {
-    const cx = W / 2;
-    const cy = skyBand / 2 + 8;
-    // Keep a ship's nose and flame inside the frame at the orbit's ends.
-    const maxRx = W / 2 - 42;
-    // Leave room above the far side of the outer orbit for a ship.
-    const tilt = Math.max(0.2, Math.min(0.38, (skyBand / 2 - 30) / maxRx));
-    return { cx, cy, maxRx, tilt };
+  function updateShips(dt) {
+    const b = skyBounds();
+    ships.forEach((ship) => {
+      ship.retarget -= dt;
+      if (ship.retarget <= 0 || Math.hypot(ship.tx - ship.x, ship.ty - ship.y) < 30) {
+        pickWaypoint(ship);
+      }
+
+      // Steer towards the waypoint, veering away from any ship too close.
+      let want = Math.atan2(ship.ty - ship.y, ship.tx - ship.x);
+      ships.forEach((other) => {
+        if (other === ship) return;
+        const d = Math.hypot(other.x - ship.x, other.y - ship.y);
+        if (d < 56) want = Math.atan2(ship.y - other.y, ship.x - other.x);
+      });
+      let turn = want - ship.heading;
+      turn = Math.atan2(Math.sin(turn), Math.cos(turn)); // wrap to ±π
+      const maxTurn = 1.9 * dt;
+      ship.heading += Math.max(-maxTurn, Math.min(maxTurn, turn));
+
+      ship.x += Math.cos(ship.heading) * ship.speed * dt;
+      ship.y += Math.sin(ship.heading) * ship.speed * dt;
+      ship.x = Math.max(b.x0 - 12, Math.min(b.x1 + 12, ship.x));
+      ship.y = Math.max(b.y0, Math.min(b.y1, ship.y));
+
+      ship.fireIn -= dt;
+      if (ship.fireIn <= 0) {
+        ship.fireIn = 2 + Math.random() * 4;
+        const nose = 18 * SHIP_SCALE;
+        for (const side of [-1, 1]) {
+          if (bolts.length >= MAX_BOLTS) break;
+          const ox = Math.cos(ship.heading + side * 0.55) * 14 * SHIP_SCALE;
+          const oy = Math.sin(ship.heading + side * 0.55) * 14 * SHIP_SCALE;
+          bolts.push({
+            x: ship.x + ox + Math.cos(ship.heading) * nose * 0.2,
+            y: ship.y + oy + Math.sin(ship.heading) * nose * 0.2,
+            a: ship.heading,
+            life: 0.7,
+          });
+        }
+      }
+    });
+
+    for (let i = bolts.length - 1; i >= 0; i--) {
+      const bolt = bolts[i];
+      bolt.x += Math.cos(bolt.a) * 280 * dt;
+      bolt.y += Math.sin(bolt.a) * 280 * dt;
+      bolt.life -= dt;
+      if (bolt.life <= 0) bolts.splice(i, 1);
+    }
   }
 
-  function drawOrbits(g) {
-    ctx.save();
-    ctx.strokeStyle = "rgba(130, 244, 163, 0.13)";
-    ctx.lineWidth = 1;
-    ctx.setLineDash([2, 4]);
-    ships.forEach((p) => {
-      const rx = g.maxRx * p.orbit;
-      ctx.beginPath();
-      ctx.ellipse(g.cx, g.cy, rx, rx * g.tilt, 0, 0, Math.PI * 2);
-      ctx.stroke();
-    });
-    ctx.restore();
+  function sunPosition() {
+    return { cx: W / 2, cy: skyBand / 2 + 8 };
   }
 
   function drawSun(g, t) {
@@ -1080,92 +1137,113 @@ const startStacker = () => {
     ctx.restore();
   }
 
-  // A little rocket, drawn nose-first along +x, then flipped to face the
-  // way it travels round the orbit.
+  // A fighter seen from above, nose along +x: swept wings with cannons on
+  // the tips, twin engines and a red cockpit slit.
   function drawShipBody(color, t, seed) {
-    // Engine flame, flickering.
-    const flame = 5 + (Math.sin(t * 24 + seed * 5) + 1) * 2.5;
-    ctx.fillStyle = "rgba(255, 180, 84, 0.85)";
-    ctx.beginPath();
-    ctx.moveTo(-9, -3.4);
-    ctx.lineTo(-9 - flame, 0);
-    ctx.lineTo(-9, 3.4);
-    ctx.fill();
-    ctx.fillStyle = "rgba(255, 242, 196, 0.9)";
-    ctx.beginPath();
-    ctx.moveTo(-9, -1.3);
-    ctx.lineTo(-9 - flame * 0.5, 0);
-    ctx.lineTo(-9, 1.3);
-    ctx.fill();
+    // Twin engine flames, flickering.
+    const flame = 5 + (Math.sin(t * 26 + seed * 5) + 1) * 2.5;
+    for (const side of [-1, 1]) {
+      ctx.fillStyle = "rgba(255, 90, 70, 0.8)";
+      ctx.beginPath();
+      ctx.moveTo(-11, side * 2.2 - 1.6);
+      ctx.lineTo(-11 - flame, side * 2.2);
+      ctx.lineTo(-11, side * 2.2 + 1.6);
+      ctx.fill();
+      ctx.fillStyle = "rgba(255, 220, 160, 0.9)";
+      ctx.beginPath();
+      ctx.moveTo(-11, side * 2.2 - 0.7);
+      ctx.lineTo(-11 - flame * 0.45, side * 2.2);
+      ctx.lineTo(-11, side * 2.2 + 0.7);
+      ctx.fill();
+    }
 
-    // Fins.
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.moveTo(-9, -5.8); ctx.lineTo(-13.5, -10.5); ctx.lineTo(-3, -6);
-    ctx.moveTo(-9, 5.8);  ctx.lineTo(-13.5, 10.5);  ctx.lineTo(-3, 6);
-    ctx.fill();
+    ctx.lineJoin = "miter";
+    ctx.lineWidth = 0.8;
+    ctx.strokeStyle = color;
 
-    // Hull.
-    ctx.fillStyle = "#d7ead9";
+    // Swept wings.
+    ctx.fillStyle = "#18211c";
     ctx.beginPath();
-    ctx.moveTo(16, 0);
-    ctx.quadraticCurveTo(10, -8, -9, -6.4);
-    ctx.lineTo(-9, 6.4);
-    ctx.quadraticCurveTo(10, 8, 16, 0);
+    ctx.moveTo(7, -3);  ctx.lineTo(-7, -15); ctx.lineTo(-11, -15); ctx.lineTo(-7, -3.5);
+    ctx.moveTo(7, 3);   ctx.lineTo(-7, 15);  ctx.lineTo(-11, 15);  ctx.lineTo(-7, 3.5);
     ctx.fill();
+    ctx.stroke();
 
-    // Porthole rim in the ship's colour; the logo goes inside it.
-    ctx.fillStyle = color;
+    // Wingtip cannons.
     ctx.beginPath();
-    ctx.arc(PORT_X, 0, PORT_R + 0.9, 0, Math.PI * 2);
+    ctx.moveTo(-9, -15); ctx.lineTo(3, -15);
+    ctx.moveTo(-9, 15);  ctx.lineTo(3, 15);
+    ctx.stroke();
+
+    // Fuselage: a long blade, widest at the badge.
+    ctx.fillStyle = "#222d27";
+    ctx.beginPath();
+    ctx.moveTo(19, 0);
+    ctx.lineTo(6, -4);
+    ctx.lineTo(-8, -6.5);
+    ctx.lineTo(-12, -3);
+    ctx.lineTo(-12, 3);
+    ctx.lineTo(-8, 6.5);
+    ctx.lineTo(6, 4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Cockpit slit, glowing.
+    ctx.fillStyle = "#ff4d5e";
+    ctx.beginPath();
+    ctx.moveTo(15, 0);
+    ctx.lineTo(9, -1.5);
+    ctx.lineTo(9, 1.5);
+    ctx.closePath();
     ctx.fill();
   }
-  const PORT_X = 2.5, PORT_R = 5;
 
-  function drawShip(g, p, t) {
-    const a = p.phase + t * p.speed;
-    const rx = g.maxRx * p.orbit;
-    const x = g.cx + Math.cos(a) * rx;
-    const y = g.cy + Math.sin(a) * rx * g.tilt;
-    const depth = 0.84 + 0.16 * Math.sin(a); // far side is smaller
-    const size = 1.9 * depth;
-    // Moving anticlockwise on screen: rightwards along the far side,
-    // leftwards along the near side.
-    const dir = Math.sin(a) < 0 ? 1 : -1;
-
+  function drawShip(ship, t, seed) {
     ctx.save();
-    ctx.translate(x, y);
-    ctx.scale(dir * size, size);
-    drawShipBody(p.color, t, p.phase);
+    ctx.translate(ship.x, ship.y);
+    ctx.rotate(ship.heading);
+    ctx.scale(SHIP_SCALE, SHIP_SCALE);
+    drawShipBody(ship.color, t, seed);
     ctx.restore();
 
-    // The logo is drawn outside the flip so it never reads mirrored.
-    const px = x + dir * PORT_X * size;
-    const pr = PORT_R * size;
+    // The badge sits on the ship's centre, so it stays put as the ship
+    // turns, and is drawn unrotated so the logo always reads upright.
     ctx.save();
     ctx.beginPath();
-    ctx.arc(px, y, pr, 0, Math.PI * 2);
+    ctx.arc(ship.x, ship.y, BADGE_R, 0, Math.PI * 2);
     ctx.fillStyle = "#e8efe9";
     ctx.fill();
+    ctx.lineWidth = 1.2;
+    ctx.strokeStyle = ship.color;
+    ctx.stroke();
     ctx.clip();
-    if (p.logo.complete && p.logo.naturalWidth) {
-      const s = pr * 1.5;
-      ctx.drawImage(p.logo, px - s / 2, y - s / 2, s, s);
+    if (ship.logo.complete && ship.logo.naturalWidth) {
+      const s = BADGE_R * 1.5;
+      ctx.drawImage(ship.logo, ship.x - s / 2, ship.y - s / 2, s, s);
     }
     ctx.restore();
   }
 
-  function drawSolarSystem(t) {
-    const g = solarGeometry();
-    drawBackgroundPlanets();
-    drawOrbits(g);
-    const behind = [], front = [];
-    ships.forEach((p) => {
-      (Math.sin(p.phase + t * p.speed) < 0 ? behind : front).push(p);
+  function drawBolts() {
+    ctx.save();
+    ctx.lineCap = "round";
+    ctx.lineWidth = 1.6;
+    bolts.forEach((bolt) => {
+      ctx.strokeStyle = `rgba(255, 77, 94, ${Math.min(1, bolt.life * 2)})`;
+      ctx.beginPath();
+      ctx.moveTo(bolt.x, bolt.y);
+      ctx.lineTo(bolt.x - Math.cos(bolt.a) * 9, bolt.y - Math.sin(bolt.a) * 9);
+      ctx.stroke();
     });
-    behind.forEach((p) => drawShip(g, p, t));
-    drawSun(g, t);
-    front.forEach((p) => drawShip(g, p, t));
+    ctx.restore();
+  }
+
+  function drawSolarSystem(t) {
+    drawBackgroundPlanets();
+    drawSun(sunPosition(), t);
+    drawBolts();
+    ships.forEach((ship, i) => drawShip(ship, t, i));
   }
 
   let lastTime = performance.now();
@@ -1179,6 +1257,7 @@ const startStacker = () => {
     const t = engine.timing.timestamp / 1000;
     updateFauna(t, dt);
     updateAmbience(t, dt);
+    updateShips(dt);
 
     // Back to front: sky, then everything the water sits over, then the
     // water itself, then what floats on or stands above it.
