@@ -991,18 +991,27 @@ const startStacker = () => {
   }
 
   // ── Solar system ──────────────────────────────────────────────────
-  // A sun and three planets on tilted orbits, each planet flying the flag
-  // of an agent harness. Planets behind the sun are drawn before it and
-  // shrink a little, so the orbits read as a disc seen from above.
+  // A sun and three spaceships on tilted orbits, each flying the flag of
+  // an agent harness. Ships behind the sun are drawn before it and shrink
+  // a little, so the orbits read as a disc seen from above. A few faint
+  // planets hang still in the background.
   function loadLogo(src) {
     const img = new Image();
     img.src = src;
     return img;
   }
-  const planets = [
-    { color: "#d97757", r: 8,   orbit: 0.42, speed: 0.34, phase: 0.6, logo: loadLogo("/logos/claude-code.svg?v=2") },
-    { color: "#5b9dff", r: 11,  orbit: 0.7,  speed: 0.21, phase: 2.9, logo: loadLogo("/logos/hermes.png?v=1") },
-    { color: "#9a9696", r: 9.5, orbit: 0.97, speed: 0.13, phase: 4.6, logo: loadLogo("/logos/opencode.svg?v=1") },
+  const ships = [
+    { color: "#d97757", orbit: 0.42, speed: 0.34, phase: 0.6, logo: loadLogo("/logos/claude-code.svg?v=2") },
+    { color: "#5b9dff", orbit: 0.7,  speed: 0.21, phase: 2.9, logo: loadLogo("/logos/hermes.png?v=1") },
+    { color: "#9a9696", orbit: 0.97, speed: 0.13, phase: 4.6, logo: loadLogo("/logos/opencode.svg?v=1") },
+  ];
+  // Background planets, placed as fractions of the canvas width and the
+  // sky band so they keep their spots at any size.
+  const bgPlanets = [
+    { x: 0.09, y: 0.2,  r: 9,  color: "#b48cff" },
+    { x: 0.9,  y: 0.16, r: 12, color: "#7ee0d1", ring: true },
+    { x: 0.8,  y: 1.02, r: 5,  color: "#ff7a92" },
+    { x: 0.14, y: 0.95, r: 6.5, color: "#ffb454" },
   ];
 
   function solarGeometry() {
@@ -1020,7 +1029,7 @@ const startStacker = () => {
     ctx.strokeStyle = "rgba(130, 244, 163, 0.13)";
     ctx.lineWidth = 1;
     ctx.setLineDash([2, 4]);
-    planets.forEach((p) => {
+    ships.forEach((p) => {
       const rx = g.maxRx * p.orbit;
       ctx.beginPath();
       ctx.ellipse(g.cx, g.cy, rx, rx * g.tilt, 0, 0, Math.PI * 2);
@@ -1074,36 +1083,103 @@ const startStacker = () => {
     }
   }
 
-  function drawPlanet(g, p, t) {
+  function drawBackgroundPlanets() {
+    ctx.save();
+    ctx.globalAlpha = 0.32;
+    bgPlanets.forEach((p) => {
+      const x = W * p.x, y = skyBand * p.y;
+      const shade = ctx.createRadialGradient(x - p.r * 0.4, y - p.r * 0.4, p.r * 0.1, x, y, p.r);
+      shade.addColorStop(0, "rgba(255, 255, 255, 0.5)");
+      shade.addColorStop(0.35, p.color);
+      shade.addColorStop(1, "rgba(8, 16, 11, 0.9)");
+      ctx.fillStyle = shade;
+      ctx.beginPath();
+      ctx.arc(x, y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+      if (p.ring) {
+        ctx.strokeStyle = p.color;
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.ellipse(x, y, p.r * 1.9, p.r * 0.45, -0.35, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    });
+    ctx.restore();
+  }
+
+  // A little rocket, drawn nose-first along +x, then flipped to face the
+  // way it travels round the orbit.
+  function drawShipBody(color, t, seed) {
+    // Engine flame, flickering.
+    const flame = 5 + (Math.sin(t * 24 + seed * 5) + 1) * 2.5;
+    ctx.fillStyle = "rgba(255, 180, 84, 0.85)";
+    ctx.beginPath();
+    ctx.moveTo(-9, -2.6);
+    ctx.lineTo(-9 - flame, 0);
+    ctx.lineTo(-9, 2.6);
+    ctx.fill();
+    ctx.fillStyle = "rgba(255, 242, 196, 0.9)";
+    ctx.beginPath();
+    ctx.moveTo(-9, -1.3);
+    ctx.lineTo(-9 - flame * 0.5, 0);
+    ctx.lineTo(-9, 1.3);
+    ctx.fill();
+
+    // Fins.
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(-9, -4.2); ctx.lineTo(-13, -8.5); ctx.lineTo(-4, -4.4);
+    ctx.moveTo(-9, 4.2);  ctx.lineTo(-13, 8.5);  ctx.lineTo(-4, 4.4);
+    ctx.fill();
+
+    // Hull.
+    ctx.fillStyle = "#d7ead9";
+    ctx.beginPath();
+    ctx.moveTo(14, 0);
+    ctx.quadraticCurveTo(8, -5.8, -9, -4.6);
+    ctx.lineTo(-9, 4.6);
+    ctx.quadraticCurveTo(8, 5.8, 14, 0);
+    ctx.fill();
+
+    // Porthole.
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(4, 0, 2.3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function drawShip(g, p, t) {
     const a = p.phase + t * p.speed;
     const rx = g.maxRx * p.orbit;
     const x = g.cx + Math.cos(a) * rx;
     const y = g.cy + Math.sin(a) * rx * g.tilt;
     const depth = 0.84 + 0.16 * Math.sin(a); // far side is smaller
-    const r = p.r * depth;
+    const size = 1.45 * depth;
+    // Moving anticlockwise on screen: rightwards along the far side,
+    // leftwards along the near side.
+    const dir = Math.sin(a) < 0 ? 1 : -1;
 
-    const shade = ctx.createRadialGradient(x - r * 0.4, y - r * 0.4, r * 0.1, x, y, r);
-    shade.addColorStop(0, "rgba(255, 255, 255, 0.55)");
-    shade.addColorStop(0.35, p.color);
-    shade.addColorStop(1, "rgba(8, 16, 11, 0.9)");
-    ctx.fillStyle = shade;
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(dir * size, size);
+    drawShipBody(p.color, t, p.phase);
+    ctx.restore();
 
-    drawFlag(x, y - r + 1, p.logo, t, p.phase);
+    // The flag stays upright on a mast from the top of the hull.
+    drawFlag(x, y - 4.6 * size, p.logo, t, p.phase);
   }
 
   function drawSolarSystem(t) {
     const g = solarGeometry();
+    drawBackgroundPlanets();
     drawOrbits(g);
     const behind = [], front = [];
-    planets.forEach((p) => {
+    ships.forEach((p) => {
       (Math.sin(p.phase + t * p.speed) < 0 ? behind : front).push(p);
     });
-    behind.forEach((p) => drawPlanet(g, p, t));
+    behind.forEach((p) => drawShip(g, p, t));
     drawSun(g, t);
-    front.forEach((p) => drawPlanet(g, p, t));
+    front.forEach((p) => drawShip(g, p, t));
   }
 
   let lastTime = performance.now();
