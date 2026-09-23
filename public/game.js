@@ -994,7 +994,9 @@ const startStacker = () => {
   // A sun, a few faint planets hanging still behind it, and three fighters
   // roaming the sky, each wearing the logo of an agent harness. The ships
   // wander from one random waypoint to the next, keep their distance from
-  // each other, and now and then loose a laser bolt.
+  // each other, and now and then loose a laser bolt. Bolts that find
+  // another ship and ships that ram each other both cost a hit point; at
+  // zero the ship blows apart and a fresh one flies in a few seconds later.
   function loadLogo(src) {
     const img = new Image();
     img.src = src;
@@ -1009,6 +1011,11 @@ const startStacker = () => {
   ];
   const bolts = [];
   const MAX_BOLTS = 12;
+  const MAX_HP = 4;
+  const HIT_R = 15;   // a bolt within this of a ship's centre is a hit
+  const RAM_R = 26;   // two ships closer than this have collided
+  const debris = [];  // sparks, hull shards and smoke puffs
+  const MAX_DEBRIS = 90;
 
   // The ships keep to the sky band, above the helicopter's flight line.
   function skyBounds() {
@@ -1020,15 +1027,61 @@ const startStacker = () => {
     ship.ty = b.y0 + Math.random() * (b.y1 - b.y0);
     ship.retarget = 3 + Math.random() * 4;
   }
+  function resetShip(ship) {
+    ship.hp = MAX_HP;
+    ship.dead = false;
+    ship.hurt = 0;      // seconds left of the hit flicker, also i-frames
+    ship.smokeIn = 0;
+    ship.speed = 46 + Math.random() * 18;
+    ship.fireIn = 1.5 + Math.random() * 3;
+    pickWaypoint(ship);
+  }
   ships.forEach((ship, i) => {
     const b = skyBounds();
     ship.x = b.x0 + ((i + 0.5) / ships.length) * (b.x1 - b.x0);
     ship.y = b.y0 + Math.random() * (b.y1 - b.y0);
     ship.heading = Math.random() * Math.PI * 2;
-    ship.speed = 46 + Math.random() * 18;
-    ship.fireIn = 1.5 + Math.random() * 3;
-    pickWaypoint(ship);
+    resetShip(ship);
   });
+
+  // Replacements fly in from whichever side edge, pointing inwards.
+  function respawnShip(ship) {
+    const b = skyBounds();
+    const fromLeft = Math.random() < 0.5;
+    ship.x = fromLeft ? b.x0 - 12 : b.x1 + 12;
+    ship.y = b.y0 + Math.random() * (b.y1 - b.y0);
+    ship.heading = fromLeft ? 0 : Math.PI;
+    resetShip(ship);
+    ship.hurt = 1.2; // a moment's grace to get clear
+  }
+
+  function spawnDebris(x, y, n, speed, color, kind) {
+    for (let i = 0; i < n && debris.length < MAX_DEBRIS; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const sp = speed * (0.3 + Math.random() * 0.7);
+      const life = kind === "smoke" ? 0.9 + Math.random() * 0.6 : 0.35 + Math.random() * 0.5;
+      debris.push({
+        x, y,
+        vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+        spin: (Math.random() - 0.5) * 12, rot: Math.random() * Math.PI,
+        life, max: life, color, kind,
+      });
+    }
+  }
+
+  function damage(ship, x, y) {
+    if (ship.dead || ship.hurt > 0) return;
+    ship.hp -= 1;
+    ship.hurt = 0.45;
+    spawnDebris(x, y, 6, 90, "#ffd27a", "spark");
+    if (ship.hp > 0) return;
+    ship.dead = true;
+    ship.respawnIn = 3.5 + Math.random() * 2.5;
+    spawnDebris(ship.x, ship.y, 16, 150, "#ffb454", "spark");
+    spawnDebris(ship.x, ship.y, 7, 70, ship.color, "shard");
+    spawnDebris(ship.x, ship.y, 6, 22, "rgba(120, 130, 124, 1)", "smoke");
+    debris.push({ x: ship.x, y: ship.y, life: 0.35, max: 0.35, kind: "flash" });
+  }
 
   // Background planets, placed as fractions of the canvas width and the
   // sky band so they keep their spots at any size.
@@ -1042,6 +1095,12 @@ const startStacker = () => {
   function updateShips(dt) {
     const b = skyBounds();
     ships.forEach((ship) => {
+      if (ship.dead) {
+        ship.respawnIn -= dt;
+        if (ship.respawnIn <= 0) respawnShip(ship);
+        return;
+      }
+      ship.hurt = Math.max(0, ship.hurt - dt);
       ship.retarget -= dt;
       if (ship.retarget <= 0 || Math.hypot(ship.tx - ship.x, ship.ty - ship.y) < 30) {
         pickWaypoint(ship);
@@ -1050,9 +1109,9 @@ const startStacker = () => {
       // Steer towards the waypoint, veering away from any ship too close.
       let want = Math.atan2(ship.ty - ship.y, ship.tx - ship.x);
       ships.forEach((other) => {
-        if (other === ship) return;
+        if (other === ship || other.dead) return;
         const d = Math.hypot(other.x - ship.x, other.y - ship.y);
-        if (d < 56) want = Math.atan2(ship.y - other.y, ship.x - other.x);
+        if (d < 50) want = Math.atan2(ship.y - other.y, ship.x - other.x);
       });
       let turn = want - ship.heading;
       turn = Math.atan2(Math.sin(turn), Math.cos(turn)); // wrap to ±π
@@ -1064,8 +1123,28 @@ const startStacker = () => {
       ship.x = Math.max(b.x0 - 12, Math.min(b.x1 + 12, ship.x));
       ship.y = Math.max(b.y0, Math.min(b.y1, ship.y));
 
+      // A wounded ship trails smoke, thicker the closer it is to going down.
+      if (ship.hp < MAX_HP) {
+        ship.smokeIn -= dt;
+        if (ship.smokeIn <= 0) {
+          ship.smokeIn = ship.hp === 1 ? 0.08 : 0.2;
+          const tail = 12 * SHIP_SCALE;
+          spawnDebris(ship.x - Math.cos(ship.heading) * tail, ship.y - Math.sin(ship.heading) * tail,
+            1, 8, "rgba(120, 130, 124, 1)", "smoke");
+        }
+      }
+
+      // Fire on the timer, or early if another ship has drifted into the
+      // sights, so bolts actually find a target now and then.
       ship.fireIn -= dt;
-      if (ship.fireIn <= 0) {
+      const lined = ships.some((other) => {
+        if (other === ship || other.dead) return false;
+        const d = Math.hypot(other.x - ship.x, other.y - ship.y);
+        let off = Math.atan2(other.y - ship.y, other.x - ship.x) - ship.heading;
+        off = Math.atan2(Math.sin(off), Math.cos(off));
+        return d < 190 && Math.abs(off) < 0.18;
+      });
+      if (ship.fireIn <= 0 || (lined && ship.fireIn < 0.8)) {
         ship.fireIn = 2 + Math.random() * 4;
         const nose = 18 * SHIP_SCALE;
         for (const side of [-1, 1]) {
@@ -1077,6 +1156,7 @@ const startStacker = () => {
             y: ship.y + oy + Math.sin(ship.heading) * nose * 0.2,
             a: ship.heading,
             life: 0.7,
+            owner: ship,
           });
         }
       }
@@ -1087,7 +1167,45 @@ const startStacker = () => {
       bolt.x += Math.cos(bolt.a) * 280 * dt;
       bolt.y += Math.sin(bolt.a) * 280 * dt;
       bolt.life -= dt;
-      if (bolt.life <= 0) bolts.splice(i, 1);
+      const hit = ships.find((s) => s !== bolt.owner && !s.dead &&
+        Math.hypot(s.x - bolt.x, s.y - bolt.y) < HIT_R);
+      if (hit) damage(hit, bolt.x, bolt.y);
+      if (hit || bolt.life <= 0) bolts.splice(i, 1);
+    }
+
+    // Rams: both ships take the knock and are shoved apart onto new tracks.
+    for (let i = 0; i < ships.length; i++) {
+      for (let j = i + 1; j < ships.length; j++) {
+        const s1 = ships[i], s2 = ships[j];
+        if (s1.dead || s2.dead) continue;
+        const dx = s2.x - s1.x, dy = s2.y - s1.y;
+        const d = Math.hypot(dx, dy) || 1;
+        if (d >= RAM_R) continue;
+        const mx = (s1.x + s2.x) / 2, my = (s1.y + s2.y) / 2;
+        damage(s1, mx, my);
+        damage(s2, mx, my);
+        const push = (RAM_R - d) / 2 + 1;
+        s1.x -= (dx / d) * push; s1.y -= (dy / d) * push;
+        s2.x += (dx / d) * push; s2.y += (dy / d) * push;
+        s1.heading = Math.atan2(-dy, -dx);
+        s2.heading = Math.atan2(dy, dx);
+        pickWaypoint(s1);
+        pickWaypoint(s2);
+      }
+    }
+
+    for (let i = debris.length - 1; i >= 0; i--) {
+      const p = debris[i];
+      p.life -= dt;
+      if (p.life <= 0) { debris.splice(i, 1); continue; }
+      if (p.kind === "flash") continue;
+      const drag = p.kind === "smoke" ? 0.6 : 0.2;
+      p.vx *= Math.pow(drag, dt);
+      p.vy *= Math.pow(drag, dt);
+      if (p.kind === "smoke") p.vy -= 6 * dt;
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.rot += p.spin * dt;
     }
   }
 
@@ -1200,6 +1318,11 @@ const startStacker = () => {
   }
 
   function drawShip(ship, t, seed) {
+    if (ship.dead) return;
+    // Flicker while hurt (and while arriving), classic arcade style.
+    const flicker = ship.hurt > 0 && Math.floor(ship.hurt * 20) % 2 === 0;
+    ctx.save();
+    if (flicker) ctx.globalAlpha = reduceMotion ? 0.6 : 0.3;
     ctx.save();
     ctx.translate(ship.x, ship.y);
     ctx.rotate(ship.heading);
@@ -1223,6 +1346,53 @@ const startStacker = () => {
       ctx.drawImage(ship.logo, ship.x - s / 2, ship.y - s / 2, s, s);
     }
     ctx.restore();
+    ctx.restore();
+  }
+
+  function drawDebris() {
+    ctx.save();
+    debris.forEach((p) => {
+      const k = p.life / p.max;
+      if (p.kind === "flash") {
+        const r = 6 + (1 - k) * 26;
+        const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r);
+        g.addColorStop(0, `rgba(255, 242, 196, ${k})`);
+        g.addColorStop(1, "rgba(255, 140, 70, 0)");
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (p.kind === "smoke") {
+        ctx.globalAlpha = 0.35 * k;
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 2 + (1 - k) * 5, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (p.kind === "shard") {
+        ctx.globalAlpha = k;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rot);
+        ctx.fillStyle = "#222d27";
+        ctx.strokeStyle = p.color;
+        ctx.lineWidth = 0.8;
+        ctx.beginPath();
+        ctx.moveTo(4, 0); ctx.lineTo(-3, -2.5); ctx.lineTo(-2, 2.5);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+      } else {
+        ctx.globalAlpha = k;
+        ctx.strokeStyle = p.color;
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+        ctx.lineTo(p.x - p.vx * 0.03, p.y - p.vy * 0.03);
+        ctx.stroke();
+      }
+    });
+    ctx.restore();
   }
 
   function drawBolts() {
@@ -1244,6 +1414,7 @@ const startStacker = () => {
     drawSun(sunPosition(), t);
     drawBolts();
     ships.forEach((ship, i) => drawShip(ship, t, i));
+    drawDebris();
   }
 
   let lastTime = performance.now();
