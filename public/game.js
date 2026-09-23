@@ -996,7 +996,7 @@ const startStacker = () => {
   // wander from one random waypoint to the next, keep their distance from
   // each other, and now and then loose a laser bolt. Bolts that find
   // another ship and ships that ram each other both cost a hit point; at
-  // zero the ship blows apart and a fresh one flies in a few seconds later.
+  // zero the ship blows apart for good, until only the last one flies on.
   function loadLogo(src) {
     const img = new Image();
     img.src = src;
@@ -1027,7 +1027,11 @@ const startStacker = () => {
     ship.ty = b.y0 + Math.random() * (b.y1 - b.y0);
     ship.retarget = 3 + Math.random() * 4;
   }
-  function resetShip(ship) {
+  ships.forEach((ship, i) => {
+    const b = skyBounds();
+    ship.x = b.x0 + ((i + 0.5) / ships.length) * (b.x1 - b.x0);
+    ship.y = b.y0 + Math.random() * (b.y1 - b.y0);
+    ship.heading = Math.random() * Math.PI * 2;
     ship.hp = MAX_HP;
     ship.dead = false;
     ship.hurt = 0;      // seconds left of the hit flicker, also i-frames
@@ -1035,25 +1039,7 @@ const startStacker = () => {
     ship.speed = 46 + Math.random() * 18;
     ship.fireIn = 1.5 + Math.random() * 3;
     pickWaypoint(ship);
-  }
-  ships.forEach((ship, i) => {
-    const b = skyBounds();
-    ship.x = b.x0 + ((i + 0.5) / ships.length) * (b.x1 - b.x0);
-    ship.y = b.y0 + Math.random() * (b.y1 - b.y0);
-    ship.heading = Math.random() * Math.PI * 2;
-    resetShip(ship);
   });
-
-  // Replacements fly in from whichever side edge, pointing inwards.
-  function respawnShip(ship) {
-    const b = skyBounds();
-    const fromLeft = Math.random() < 0.5;
-    ship.x = fromLeft ? b.x0 - 12 : b.x1 + 12;
-    ship.y = b.y0 + Math.random() * (b.y1 - b.y0);
-    ship.heading = fromLeft ? 0 : Math.PI;
-    resetShip(ship);
-    ship.hurt = 1.2; // a moment's grace to get clear
-  }
 
   function spawnDebris(x, y, n, speed, color, kind) {
     for (let i = 0; i < n && debris.length < MAX_DEBRIS; i++) {
@@ -1076,7 +1062,6 @@ const startStacker = () => {
     spawnDebris(x, y, 6, 90, "#ffd27a", "spark");
     if (ship.hp > 0) return;
     ship.dead = true;
-    ship.respawnIn = 3.5 + Math.random() * 2.5;
     spawnDebris(ship.x, ship.y, 16, 150, "#ffb454", "spark");
     spawnDebris(ship.x, ship.y, 7, 70, ship.color, "shard");
     spawnDebris(ship.x, ship.y, 6, 22, "rgba(120, 130, 124, 1)", "smoke");
@@ -1095,11 +1080,7 @@ const startStacker = () => {
   function updateShips(dt) {
     const b = skyBounds();
     ships.forEach((ship) => {
-      if (ship.dead) {
-        ship.respawnIn -= dt;
-        if (ship.respawnIn <= 0) respawnShip(ship);
-        return;
-      }
+      if (ship.dead) return;
       ship.hurt = Math.max(0, ship.hurt - dt);
       ship.retarget -= dt;
       if (ship.retarget <= 0 || Math.hypot(ship.tx - ship.x, ship.ty - ship.y) < 30) {
