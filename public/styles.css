@@ -264,8 +264,8 @@ main > .block:first-child {
   aspect-ratio: 2 / 3;
   background: transparent;
   cursor: grab;
-  /* Allow vertical page scroll while still letting Matter receive
-     horizontal drags for box manipulation. */
+  /* Let a vertical swipe scroll the page; game.js cancels it only when
+     the finger lands on a box, so boxes can still be dragged. */
   touch-action: pan-y;
 }
 .hero__game canvas:active { cursor: grabbing; }

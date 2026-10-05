@@ -5,7 +5,7 @@ const startStacker = () => {
   const canvas = document.getElementById("stacker");
   if (!canvas || typeof Matter === "undefined") return;
 
-  const { Engine, Bodies, Body, Composite, Mouse, MouseConstraint, Events } = Matter;
+  const { Engine, Bodies, Body, Composite, Mouse, MouseConstraint, Events, Query } = Matter;
   const ctx = canvas.getContext("2d");
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
@@ -212,12 +212,27 @@ const startStacker = () => {
   });
   Composite.add(world, mc);
 
-  // Only swallow touchmove when actively dragging a box.
-  canvas.addEventListener(
-    "touchmove",
-    (e) => { if (mc.body) e.preventDefault(); },
-    { passive: false }
-  );
+  // Matter's touch handlers call preventDefault on every touchstart and
+  // touchmove, so a swipe over the canvas never scrolls the page. Rebind
+  // them with the preventDefault hidden, and only swallow touchmove when the
+  // finger came down on a box, so a swipe on empty sky scrolls as normal.
+  canvas.removeEventListener("touchstart", mouse.mousedown);
+  canvas.removeEventListener("touchmove", mouse.mousemove);
+  canvas.removeEventListener("touchend", mouse.mouseup);
+  const shim = (e) => ({ changedTouches: e.changedTouches, preventDefault() {} });
+  let touchOnBox = false;
+  canvas.addEventListener("touchstart", (e) => {
+    mouse.mousedown(shim(e));
+    touchOnBox = Query.point(boxes, mouse.position).length > 0;
+  }, { passive: true });
+  canvas.addEventListener("touchmove", (e) => {
+    if (touchOnBox) e.preventDefault();
+    mouse.mousemove(shim(e));
+  }, { passive: false });
+  canvas.addEventListener("touchend", (e) => {
+    touchOnBox = false;
+    mouse.mouseup(shim(e));
+  }, { passive: true });
 
   // Slow, gentle platform motion. Boxes are slippery enough that even
   // this tiny tilt walks them off the edges.
