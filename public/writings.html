@@ -8,6 +8,17 @@
     <meta name="color-scheme" content="dark" />
     <meta name="theme-color" content="#08100b" />
 
+    <!-- Link previews (LinkedIn, X, Slack...). og:image must be an absolute URL to a PNG or JPG, 1200x627. -->
+    <meta property="og:site_name" content="whirlwin.io" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="whirlwin.io: writings" />
+    <meta property="og:url" content="https://whirlwin.io/writings" />
+    <meta property="og:image" content="https://whirlwin.io/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="627" />
+    <meta property="og:image:alt" content="Illustrated portrait of Øyvind Ødegård beside the whirlwin.io wordmark" />
+    <meta name="twitter:card" content="summary_large_image" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -65,7 +76,8 @@
 
           Your own writing — two files:
             1. public/writings/<slug>.html: copy the existing one and edit the
-               <title>, the description meta, the h1, the date and the body
+               <title>, the description meta, the h1, the date and the body,
+               plus og:title and og:url (README.md, link previews)
             2. an <article class="post"> below, newest first, with
                id="<slug>" and both its title and .post__more pointing at
                /writings/<slug>. Keep the body to a sentence or two.

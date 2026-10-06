@@ -52,6 +52,29 @@ npx wrangler pages deploy public --project-name whirlwin-io
 Only `public/` is uploaded, which is how the deploy avoids serving repo files
 (README, todo list, dotfiles). One-time login first: `npx wrangler login`.
 
+## Link previews
+
+Every page carries Open Graph tags (`og:title`, `og:url`, `og:image`, ...)
+so LinkedIn, X, Slack and the like show a title and a picture when the link is
+shared. `og:image` must be an absolute `https://whirlwin.io/...` URL to a PNG
+or JPG: link unfurlers will not render an SVG or an image drawn inline in the
+page. 1200x627 is the size LinkedIn wants.
+
+Pages without a picture of their own point at `public/og.png`, the portrait
+and wordmark. A writing with its own illustration gets its own card next to
+it, `public/writings/<slug>.png`. The cards are HTML in `og/` (not deployed),
+rendered by screenshotting them in a browser at exactly 1200x627 from a
+server at the repo root, so `/public/...` image paths resolve:
+
+```sh
+python3 -m http.server 8081
+# open http://localhost:8081/og/<card>.html at a 1200x627 viewport, screenshot
+```
+
+LinkedIn caches a preview for about a week. After changing a card or the
+tags of a page that has already been shared, refresh it with
+<https://www.linkedin.com/post-inspector/>.
+
 ## Editing projects
 
 The projects list is an `<ol class="apps">` of `<li class="card">` entries.
@@ -72,7 +95,8 @@ Your own writing is two edits:
 
 1. Copy `public/writings/cloudflare-cost-caps.html` to
    `public/writings/<slug>.html` and edit the `<title>`, the description meta,
-   the `h1`, the date and the body.
+   the `h1`, the date and the body, plus the `og:title` and `og:url` link
+   preview tags (see below).
 2. Add an `<article class="post">` at the top of `<div class="posts">` in
    `public/writings.html` with `id="<slug>"`, its title and its `.post__more`
    link both pointing at `/writings/<slug>`, and a sentence or two of preview.
