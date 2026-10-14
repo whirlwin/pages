@@ -1,0 +1,32 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+html,body{margin:0}
+body{width:1200px;height:627px;font-family:"JetBrains Mono",monospace;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px;overflow:hidden;
+background:radial-gradient(900px 500px at 80% -10%,rgba(130,244,163,.08),transparent 60%),radial-gradient(700px 500px at -10% 40%,rgba(255,117,24,.07),transparent 60%),#08100b}
+h1{margin:0;color:#82f4a3;font-size:52px;font-weight:700;text-align:center;line-height:1.25}
+h1 span{display:block;color:#d7ead9;font-size:34px;font-weight:400}
+/* The costumes are frames cropped out of the plugin's own preview.png, one per costume. */
+.strip{display:flex;gap:18px;padding:22px 26px 18px;background:#1e1e2e;border:2px solid #2a4434;border-radius:8px}
+.c{display:flex;flex-direction:column;align-items:center;gap:8px;font-size:22px}
+.s{--k:1.15;width:calc(174px*var(--k));height:calc(92px*var(--k));background:url(/og/halloween-preview.png) no-repeat;background-size:calc(440px*var(--k)) calc(923px*var(--k));image-rendering:pixelated}
+.pumpkin .s{background-position:calc(-4px*var(--k)) calc(-4px*var(--k))}
+.ghost .s{background-position:calc(-4px*var(--k)) calc(-274px*var(--k))}
+.zombie .s{background-position:calc(-4px*var(--k)) calc(-371px*var(--k))}
+.witch .s{background-position:calc(-4px*var(--k)) calc(-543px*var(--k))}
+.devil .s{background-position:calc(-4px*var(--k)) calc(-724px*var(--k))}
+.pumpkin{color:#ff7518}.ghost{color:#e8ecf4}.zombie{color:#8db360}.witch{color:#b38be6}.devil{color:#e74c3c}
+p{margin:0;color:#8aa295;font-size:22px}
+p b{color:#d7ead9;font-weight:400}
+</style></head><body>
+<h1>Ready for Halloween? 🎃<span>Claude Code is.</span></h1>
+<div class="strip" id="strip">
+<div class="c pumpkin"><div class="s"></div>Carving…</div>
+<div class="c ghost"><div class="s"></div>Haunting…</div>
+<div class="c zombie"><div class="s"></div>Shambling…</div>
+<div class="c witch"><div class="s"></div>Brewing…</div>
+<div class="c devil"><div class="s"></div>Scheming…</div>
+</div>
+<p><b>/plugin install halloween --marketplace whirlwin/claude-code-halloween</b></p>
+<p>whirlwin.io</p>
+</body></html>
