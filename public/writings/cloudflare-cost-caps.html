@@ -128,8 +128,13 @@
                 your Workers: the workers.dev URL, custom domains, routes and cron
                 triggers come off, and so do the D1, KV, R2 and Durable Object
                 bindings. Each is saved first, so a resume puts it back, and it never
-                resumes on its own. Your Cloudflare API token stays in your own
-                account, held by a small open-source agent you deploy there.
+                resumes on its own. It works from outside your code, so there is
+                nothing to add to your Workers. Your Cloudflare API token stays in
+                your own account, held by a small
+                <a href="https://github.com/Controlflare/controlflare-cost-agent" rel="noopener">open-source agent</a>
+                you deploy there, and a remote
+                <a href="https://controlflare.com/agents/" rel="noopener">MCP server</a>
+                lets Claude Code and friends check the spend and pause things too.
               </p>
               <p>
                 It would have paused that agent's runaway writer within hours, and it
