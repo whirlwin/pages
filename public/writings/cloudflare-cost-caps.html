@@ -82,37 +82,31 @@
                 The catch is that an agent will deploy a loop just as happily as a
                 feature, and on usage-based billing a loop is not a crash. Nothing
                 errors. The meter just runs, and nobody is watching at 3am. This year
-                has been full of people finding out the hard way.
+                has been full of people finding out the hard way. In August Justin
+                Schroeder
+                <a href="https://x.com/jpschroeder/status/2086144942657712500" rel="noopener">woke up to a $8,846 Cloudflare bill</a>
+                and summed it up: "We found out by getting the bill."
               </p>
               <p>
-                In April, in the middle of Cloudflare's Agents Week,
-                <a href="https://news.ycombinator.com/item?id=47787042" rel="noopener">a solo founder</a>
-                found that their AI agent on Durable Objects had scheduled a new
-                health check alarm on every wake-up, across more than 60 preview
-                deployments. Zero users, around 930 billion row reads a day at the
-                peak, and a $34,895 invoice. "Running Agents Week while that gap
-                exists is not a neutral decision," they wrote.
+                In June
+                <a href="https://community.cloudflare.com/t/934039" rel="noopener">a two-person team</a>
+                was billed $5,864 because "an LLM coding agent on our project shipped
+                a change that rewrote the same data every few minutes": about 5
+                billion D1 writes from a workers.dev Worker. Their alert emails landed in
+                spam, and the first signal was the bank debit. "Right now there's no
+                good way to defend against an agent going off the rails between two
+                human reviews," they wrote.
               </p>
               <p>
-                In August, Justin Schroeder
-                <a href="https://x.com/jpschroeder/status/2086144942657712500" rel="noopener">woke up to a $8,846 Cloudflare bill</a>:
-                two Durable Objects deep in the stack had looped forever. "We found
-                out by getting the bill."
+                In September
+                <a href="https://community.cloudflare.com/t/958811" rel="noopener">a non-developer building with Claude Code</a>
+                got a four-figure bill for a missing index that made every crawler
+                hit on a staging site scan 306,000 rows. Cloudflare's default $10
+                budget alert showed $0.00 the whole month. "When I have a bug, I get
+                an invoice with no ceiling on it."
               </p>
               <p>
-                And last week
-                <a href="https://x.com/shmily7/status/2107481028726251762" rel="noopener">@shmily7</a>
-                got one for $10,811. They had vibe coded a multi-agent experiment on
-                Cloudflare's Sandbox, shelved it, and left it deployed. A Codex commit
-                at the end of August had planted a Durable Object alarm that
-                rescheduled itself; it woke up 23 days later and ran up six trillion
-                reads and writes. Cloudflare
-                <a href="https://x.com/shmily7/status/2108493941003972778" rel="noopener">agreed to refund it</a>
-                after an escalation. Their own line, translated, sums up the era: if
-                AI is the magic wand, Cloudflare is where the magic lands.
-              </p>
-              <p>
-                None of them did anything exotic. Something looped, nobody was
+                Neither of them did anything exotic. Something looped, nobody was
                 looking, and the first alarm was the invoice. That will happen a lot
                 more when an agent writes the code and the deploy is one tool call
                 away.
@@ -138,24 +132,12 @@
                 account, held by a small open-source agent you deploy there.
               </p>
               <p>
-                Plenty of this year's other horror stories are exactly the kind it
-                catches:
+                It would have paused that agent's runaway writer within hours, and it
+                reads the same analytics that showed the Claude Code user the real
+                numbers while the alert said $0.00. Plenty of this year's other
+                horror stories are the same kind:
               </p>
               <ul style="margin: 0 0 0.9rem; padding-left: 1.2rem;">
-                <li style="margin-bottom: 0.6rem;">
-                  <a href="https://community.cloudflare.com/t/934039" rel="noopener">A two-person team</a>
-                  was billed $5,864 after "an LLM coding agent on our project shipped
-                  a change that rewrote the same data every few minutes": about 5
-                  billion D1 writes from a workers.dev Worker. Their alert emails
-                  landed in spam, and the first signal was the bank debit.
-                </li>
-                <li style="margin-bottom: 0.6rem;">
-                  <a href="https://community.cloudflare.com/t/958811" rel="noopener">A non-developer building with Claude Code</a>
-                  got a four-figure bill for a missing index that made every crawler
-                  hit scan 306,000 rows. Cloudflare's default $10 budget alert showed
-                  $0.00 all month. They found the real numbers in the GraphQL
-                  Analytics API, the same data Controlflare reads.
-                </li>
                 <li style="margin-bottom: 0.6rem;">
                   <a href="https://community.cloudflare.com/t/936537" rel="noopener">Thunderbit</a>
                   was billed $38,772 when a bug in its Chrome extension had about
@@ -179,15 +161,40 @@
               <p>
                 Most of those would have crossed a $50 cap within hours. A pause
                 takes the Worker offline, of course, but that is the trade a cap
-                makes: a broken site for an evening instead of a five-figure invoice.
+                makes: a broken site for an evening instead of an invoice with no
+                ceiling.
               </p>
               <p>
-                The honest part: it would not have stopped either of the alarm loops
-                I started with. A Durable Object alarm runs inside the object, and
-                pulling a Worker's routes and bindings does not cancel it. The spend is an estimate, not
-                your invoice. Controlflare is a safety net with holes in it, and the
+                What it cannot stop is a Durable Object alarm loop, and those have
+                produced some of the biggest bills of the year. In April, in the
+                middle of Cloudflare's Agents Week,
+                <a href="https://news.ycombinator.com/item?id=47787042" rel="noopener">a solo founder</a>
+                found that their AI agent on Durable Objects had scheduled a new
+                health check alarm on every wake-up, across more than 60 preview
+                deployments. Zero users, around 930 billion row reads a day at the
+                peak, and a $34,895 invoice. "Running Agents Week while that gap
+                exists is not a neutral decision," they wrote.
+              </p>
+              <p>
+                And last week
+                <a href="https://x.com/shmily7/status/2107481028726251762" rel="noopener">@shmily7</a>
+                got one for $10,811. They had vibe coded a multi-agent experiment on
+                Cloudflare's Sandbox, shelved it, and left it deployed. A Codex commit
+                at the end of August had planted a Durable Object alarm that
+                rescheduled itself; it woke up 23 days later and ran up six trillion
+                reads and writes. Cloudflare
+                <a href="https://x.com/shmily7/status/2108493941003972778" rel="noopener">agreed to refund it</a>
+                after an escalation. Their own line, translated, sums up the era: if
+                AI is the magic wand, Cloudflare is where the magic lands.
+              </p>
+              <p>
+                The alarm runs inside the object, and short of redeploying or
+                deleting your code, nothing outside it can cancel it. Only Cloudflare
+                can cap that, which is why I still want the native one. Until it
+                ships, Controlflare is a safety net with holes in it: the spend is an
+                estimate, not your invoice, and the
                 <a href="https://controlflare.com/disclaimer/" rel="noopener">disclaimer</a>
-                lists every one of them. Keep Cloudflare's budget alerts on as well.
+                lists every hole. Keep Cloudflare's budget alerts on as well.
               </p>
               <p>
                 Full disclosure, it is mine. It is 30 days free, then $1 a month.
