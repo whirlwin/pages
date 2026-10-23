@@ -401,6 +401,11 @@ main > .block:first-child {
 .card__name a:hover { background: transparent; color: var(--bg); }
 .card__name a:hover::before { color: var(--bg); }
 .card:hover .card__name a { background: var(--phosphor); color: var(--bg); padding: 0 4px; margin-left: -4px; }
+/* A card for several repos has no one page to link its name or logo to, so
+   they look like the others without inviting a click. */
+.card__name > span { color: var(--phosphor); }
+.card__name > span::before { content: "› "; color: var(--ink-faint); }
+span.card__logo:hover { border-color: var(--rule); transform: none; }
 
 .card__desc {
   margin: 0 0 0.85rem;
